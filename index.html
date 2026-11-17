@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StrideAI — In-store Shopping Agent (Decathlon concept)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0e1b2c; --ink2:#41506a; --mute:#7a879c; --line:#dde3ec; --bg:#f3f6fa; --card:#fff;
+  --pri:#1a5fd6; --pri-d:#0f3f96; --pri-l:#e6efff; --acc:#ffcf2e; --ok:#14935a; --ok-l:#e3f6ec;
+  --warn:#c77700; --warn-l:#fff3dc; --bad:#c62f3c; --bad-l:#fde8ea; --r:18px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--ink);overflow:hidden;user-select:none;-webkit-tap-highlight-color:transparent}
+button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select{font:inherit}
+.disp{font-family:'Barlow Condensed',sans-serif;letter-spacing:.3px}
+
+/* Shell */
+.app{display:grid;grid-template-rows:72px 1fr 56px;height:100vh}
+header{display:flex;align-items:center;gap:16px;padding:0 24px;background:var(--ink);color:#fff}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-mark{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--pri),#4fa3ff);display:grid;place-items:center;font-weight:800}
+.logo b{font-family:'Barlow Condensed';font-size:28px;letter-spacing:.5px}
+.logo small{display:block;font-size:11px;opacity:.65;letter-spacing:.4px;text-transform:uppercase}
+.hdr-sp{flex:1}
+.pill{padding:8px 14px;border-radius:99px;background:rgba(255,255,255,.1);font-size:13px;display:flex;gap:8px;align-items:center}
+.pill .dot{width:8px;height:8px;border-radius:50%;background:#4ade80}
+.main{display:grid;grid-template-columns:1fr 360px;min-height:0}
+.stage{position:relative;overflow-y:auto;padding:28px 32px}
+aside{background:#fff;border-left:1px solid var(--line);overflow-y:auto;padding:20px}
+footer{display:flex;align-items:center;gap:12px;padding:0 24px;background:#fff;border-top:1px solid var(--line);font-size:13px;color:var(--ink2)}
+.fbtn{padding:10px 16px;border-radius:12px;border:1.5px solid var(--line);font-weight:600;font-size:14px;background:#fff}
+.fbtn.staff{border-color:var(--acc);background:#fffbea}
+.fsp{flex:1}
+
+/* Screens */
+.screen{display:none;animation:fade .25s ease}
+.screen.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+h1.disp{font-size:44px;line-height:1.02;font-weight:800}
+h2.disp{font-size:32px;font-weight:700;margin-bottom:6px}
+.sub{color:var(--ink2);font-size:17px;margin-bottom:22px}
+.back{display:inline-flex;align-items:center;gap:6px;color:var(--pri);font-weight:600;margin-bottom:14px;font-size:15px}
+
+/* Attract */
+#attract{position:absolute;inset:0;padding:0;background:radial-gradient(circle at 75% 30%,#2a6fe6 0,#123f8f 40%,#0b1f45 100%);color:#fff;overflow:hidden}
+#attract.on{display:flex}
+.att-in{margin:auto;text-align:center;max-width:760px;padding:40px;position:relative;z-index:2}
+.att-in h1{font-size:76px}
+.att-in p{font-size:20px;opacity:.85;margin:16px 0 36px}
+.tapbtn{padding:22px 54px;border-radius:99px;background:var(--acc);color:var(--ink);font-weight:800;font-size:22px;box-shadow:0 10px 40px rgba(255,207,46,.35);animation:pulse 2s infinite}
+@keyframes pulse{50%{transform:scale(1.04)}}
+.att-chips{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:36px}
+.att-chips span{padding:8px 14px;border:1px solid rgba(255,255,255,.3);border-radius:99px;font-size:14px}
+.ring{position:absolute;border-radius:50%;border:2px solid rgba(255,255,255,.08)}
+
+/* Cards / grids */
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px}
+.tile{background:#fff;border:2px solid var(--line);border-radius:var(--r);padding:22px;text-align:left;transition:.15s;display:flex;flex-direction:column;gap:8px;min-height:150px}
+.tile:active{transform:scale(.98)}
+.tile:hover{border-color:var(--pri)}
+.tile .ic{font-size:34px}
+.tile b{font-size:19px}
+.tile span{color:var(--ink2);font-size:14px}
+.tile .tag{margin-top:auto;align-self:flex-start;font-size:11px;font-weight:700;padding:4px 10px;border-radius:99px;background:var(--pri-l);color:var(--pri-d);text-transform:uppercase;letter-spacing:.4px}
+.opt{padding:16px 18px;border-radius:14px;border:2px solid var(--line);background:#fff;font-weight:600;font-size:16px;text-align:center}
+.opt.sel{border-color:var(--pri);background:var(--pri-l);color:var(--pri-d)}
+.lbl{font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:.5px;color:var(--mute);margin:22px 0 10px}
+.cta{padding:18px 30px;border-radius:14px;background:var(--pri);color:#fff;font-weight:700;font-size:18px}
+.cta:disabled{opacity:.4}
+.cta.ghost{background:#fff;color:var(--pri);border:2px solid var(--pri)}
+.cta.sm{padding:12px 18px;font-size:15px;border-radius:12px}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+input[type=range]{width:100%;accent-color:var(--pri);height:30px}
+.bigval{font-family:'Barlow Condensed';font-size:40px;font-weight:700;color:var(--pri)}
+
+/* Product cards */
+.prod{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:8px;position:relative}
+.prod .thumb{height:96px;border-radius:12px;background:linear-gradient(135deg,#eef3fb,#dfe8f6);display:grid;place-items:center;font-size:46px}
+.prod .nm{font-weight:700;font-size:16px;line-height:1.25}
+.prod .meta{font-size:13px;color:var(--ink2);display:flex;gap:10px;flex-wrap:wrap}
+.prod .price{font-family:'Barlow Condensed';font-size:28px;font-weight:700}
+.prod .why{font-size:13px;background:var(--pri-l);color:var(--pri-d);padding:8px 10px;border-radius:10px}
+.prod .feat{font-size:12.5px;color:var(--ink2)}
+.badge{position:absolute;top:12px;left:12px;font-size:11px;font-weight:700;padding:4px 9px;border-radius:99px;text-transform:uppercase}
+.b-safe{background:var(--warn-l);color:var(--warn)}
+.b-oos{background:var(--bad-l);color:var(--bad)}
+.b-best{background:var(--ok-l);color:var(--ok)}
+.addbtn{margin-top:auto;padding:12px;border-radius:12px;background:var(--ink);color:#fff;font-weight:700}
+.addbtn.in{background:var(--ok)}
+.addbtn:disabled{background:#c5ccd8}
+
+/* Summary bar */
+.sumbar{display:flex;gap:20px;align-items:center;padding:18px 20px;border-radius:var(--r);background:var(--ink);color:#fff;margin:18px 0}
+.sumbar .k{font-size:12px;opacity:.7;text-transform:uppercase;letter-spacing:.5px}
+.sumbar .v{font-family:'Barlow Condensed';font-size:30px;font-weight:700}
+.meter{height:10px;border-radius:99px;background:rgba(255,255,255,.18);overflow:hidden;flex:1}
+.meter i{display:block;height:100%;background:var(--acc);border-radius:99px}
+
+/* Notices */
+.note{padding:14px 16px;border-radius:14px;font-size:14.5px;display:flex;gap:10px;margin:10px 0;line-height:1.45}
+.note.w{background:var(--warn-l);color:#6b4100}
+.note.g{background:var(--ok-l);color:#0b5a37}
+.note.b{background:var(--pri-l);color:var(--pri-d)}
+.note.r{background:var(--bad-l);color:#7a1820}
+
+/* Compare */
+table.cmp{width:100%;border-collapse:separate;border-spacing:0;background:#fff;border-radius:var(--r);overflow:hidden;border:1px solid var(--line)}
+.cmp th,.cmp td{padding:14px 16px;text-align:left;border-bottom:1px solid var(--line);font-size:15px;vertical-align:top}
+.cmp th{background:#f7f9fc;font-size:13px;text-transform:uppercase;color:var(--mute);letter-spacing:.4px;width:22%}
+.cmp td.win{background:var(--ok-l);font-weight:600}
+select.sel{width:100%;padding:14px;border-radius:12px;border:2px solid var(--line);font-size:16px;background:#fff}
+
+/* Chat */
+.chat{display:flex;flex-direction:column;height:calc(100vh - 72px - 56px - 56px)}
+.msgs{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:4px 2px 16px}
+.msg{max-width:78%;padding:14px 16px;border-radius:18px;font-size:16px;line-height:1.45}
+.msg.u{align-self:flex-end;background:var(--pri);color:#fff;border-bottom-right-radius:6px}
+.msg.a{align-self:flex-start;background:#fff;border:1px solid var(--line);border-bottom-left-radius:6px}
+.msg .mini{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.chip{padding:10px 14px;border-radius:99px;background:#fff;border:1.5px solid var(--line);font-size:14px;font-weight:600}
+.inbar{display:flex;gap:10px;padding-top:10px}
+.inbar input{flex:1;padding:18px 20px;border-radius:16px;border:2px solid var(--line);font-size:17px;outline:none}
+.inbar input:focus{border-color:var(--pri)}
+.mic{width:60px;border-radius:16px;background:var(--pri-l);font-size:24px}
+
+/* Map */
+.map{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:12px}
+.zone{transition:.3s}
+
+/* Aside: transparency */
+.as-h{font-family:'Barlow Condensed';font-size:22px;font-weight:700;margin-bottom:2px}
+.as-s{font-size:12.5px;color:var(--mute);margin-bottom:14px}
+.steps{display:flex;flex-direction:column;gap:6px;margin-bottom:18px}
+.step{display:grid;grid-template-columns:24px 1fr auto;gap:10px;align-items:center;padding:10px 12px;border-radius:12px;border:1px solid var(--line);font-size:13.5px}
+.step .n{width:24px;height:24px;border-radius:50%;background:#eef2f7;display:grid;place-items:center;font-size:12px;font-weight:700;color:var(--mute)}
+.step.cur{border-color:var(--pri);background:var(--pri-l)}
+.step.cur .n{background:var(--pri);color:#fff}
+.step.done .n{background:var(--ok);color:#fff}
+.aut{font-size:10.5px;font-weight:800;padding:3px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.4px}
+.a3{background:var(--ok-l);color:var(--ok)}.a2{background:var(--pri-l);color:var(--pri-d)}.a1{background:var(--warn-l);color:var(--warn)}.a0{background:var(--bad-l);color:var(--bad)}
+.sec{border-top:1px solid var(--line);padding-top:14px;margin-top:14px}
+.sec h4{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--mute);margin-bottom:8px}
+.kv{display:flex;justify-content:space-between;font-size:13.5px;padding:5px 0}
+.kv span:first-child{color:var(--ink2)}
+.kv span:last-child{font-weight:600;text-align:right}
+.log{display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto}
+.log div{font-size:12.5px;padding:8px 10px;border-radius:10px;background:#f6f8fb;line-height:1.35}
+.log div.g{background:var(--warn-l);color:#6b4100}
+.log div.x{background:var(--ok-l);color:#0b5a37}
+.grd{font-size:12.5px;display:flex;gap:8px;padding:5px 0;color:var(--ink2)}
+.grd b{color:var(--ink)}
+
+/* Modal */
+.modal{position:fixed;inset:0;background:rgba(10,20,40,.55);display:none;place-items:center;z-index:50}
+.modal.on{display:grid}
+.mbox{background:#fff;border-radius:24px;padding:30px;max-width:520px;width:90%;text-align:center}
+.mbox h3{font-family:'Barlow Condensed';font-size:30px;margin-bottom:8px}
+.mbox p{color:var(--ink2);margin-bottom:20px}
+.qr{width:170px;height:170px;margin:12px auto;display:block}
+.code{font-family:'Barlow Condensed';font-size:46px;font-weight:800;letter-spacing:3px;color:var(--pri)}
+.toast{position:fixed;bottom:76px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 20px;border-radius:12px;font-size:14px;opacity:0;transition:.3s;pointer-events:none;z-index:60}
+.toast.on{opacity:1}
+.disc{font-size:11px;color:var(--mute)}
+
+@media (max-width:1100px){.main{grid-template-columns:1fr}aside{display:none}.g4{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:640px){.g2,.g3,.g4{grid-template-columns:1fr}h1.disp{font-size:34px}.att-in h1{font-size:48px}.stage{padding:18px}}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header>
+    <div class="logo"><div class="logo-mark">S</div><div><b>StrideAI</b><small>In-store shopping agent · concept for Decathlon</small></div></div>
+    <div class="hdr-sp"></div>
+    <div class="pill" id="hdrUser">👤 Guest session</div>
+    <div class="pill"><span class="dot"></span>Kiosk 03 · Pune store (demo)</div>
+  </header>
+
+  <div class="main">
+    <section class="stage" id="stage">
+
+      <!-- ATTRACT -->
+      <div class="screen on" id="attract">
+        <div class="ring" style="width:900px;height:900px;right:-300px;top:-300px"></div>
+        <div class="ring" style="width:600px;height:600px;right:-150px;top:-150px"></div>
+        <div class="att-in">
+          <div class="pill" style="display:inline-flex;margin-bottom:22px">✨ AI shopping assistant</div>
+          <h1 class="disp">Starting a new sport?<br>Let's kit you out, within budget.</h1>
+          <p>Starter kits, sizes, side-by-side comparisons and the aisle to find them in. It takes about 2 minutes.</p>
+          <button class="tapbtn" onclick="go('consent')">Tap to start</button>
+          <div class="att-chips"><span>🏃 Running</span><span>🚴 Cycling</span><span>🥾 Trekking</span><span>🏸 Badminton</span><span>🧘 Fitness</span><span>🏊 Swimming</span></div>
+        </div>
+      </div>
+
+      <!-- CONSENT -->
+      <div class="screen" id="consent">
+        <h1 class="disp">How would you like to continue?</h1>
+        <p class="sub">You choose what the assistant can know about you. Nothing is shared without your say.</p>
+        <div class="grid g2" style="max-width:900px">
+          <button class="tile" onclick="startGuest()">
+            <div class="ic">🕶️</div><b>Continue as guest</b>
+            <span>The assistant only uses what you tell it now. Everything is erased when you finish or walk away.</span>
+            <span class="tag">Session-only data</span>
+          </button>
+          <button class="tile" onclick="startMember()">
+            <div class="ic">📱</div><b>Scan my member QR</b>
+            <span>Uses your purchase history and saved sizes for better picks. You can switch this off at any time.</span>
+            <span class="tag">Personalised · demo profile</span>
+          </button>
+        </div>
+        <div class="note b" style="max-width:900px;margin-top:20px">🔒 <div><b>Privacy promise:</b> no camera, no face recognition, no payment details. The kiosk never takes payment. You pay at the billing counter.</div></div>
+      </div>
+
+      <!-- PROFILE -->
+      <div class="screen" id="profile">
+        <button class="back" onclick="go('consent')">← Back</button>
+        <h2 class="disp">Tell me a little about you</h2>
+        <p class="sub" id="profSub">Three quick taps. It helps me recommend gear that fits your level and budget.</p>
+        <div class="lbl">Which sport?</div>
+        <div class="grid g3" id="sportOpts"></div>
+        <div class="lbl">Your level</div>
+        <div class="grid g3" id="lvlOpts"></div>
+        <div class="lbl">Total budget</div>
+        <div class="card"><div class="row" style="justify-content:space-between"><span class="bigval" id="budVal">₹5,000</span><span class="disc">Slide to set. I will never go over it without asking you.</span></div>
+          <input type="range" id="budget" min="1000" max="50000" step="500" value="5000" oninput="setBudget(this.value)"></div>
+        <div class="row" style="margin-top:22px"><button class="cta" id="profNext" onclick="confirmProfile()" disabled>Continue →</button></div>
+      </div>
+
+      <!-- HOME / TASKS -->
+      <div class="screen" id="home">
+        <h1 class="disp" id="homeTitle">What can I help you with?</h1>
+        <p class="sub" id="homeSub"></p>
+        <div id="memberNudge"></div>
+        <div class="grid g3">
+          <button class="tile" onclick="openKit()"><div class="ic">🎒</div><b>Build my starter kit</b><span>A complete, budget-fitted bundle of essentials for your sport and level.</span><span class="tag">Task 1</span></button>
+          <button class="tile" onclick="openSize()"><div class="ic">📏</div><b>Find my size</b><span>Shoe and apparel fit from your measurements, so fewer trips to the trial room.</span><span class="tag">Task 2</span></button>
+          <button class="tile" onclick="openCompare()"><div class="ic">⚖️</div><b>Compare products</b><span>Side by side on price, rating, level and features, with a plain-English verdict.</span><span class="tag">Task 3</span></button>
+          <button class="tile" onclick="openLocate()"><div class="ic">🗺️</div><b>Find it in store</b><span>Aisle map and live shelf stock, plus help if something is out of stock.</span><span class="tag">Task 4</span></button>
+          <button class="tile" onclick="openChat()"><div class="ic">💬</div><b>Just ask</b><span>"Running shoes under 3000", "helmet for my son", "which racket is better"…</span><span class="tag">Free text</span></button>
+          <button class="tile" onclick="openCart()"><div class="ic">🧺</div><b>My basket <span id="homeCartN"></span></b><span>Review, then send it to the billing counter. No payment happens at the kiosk.</span><span class="tag">Checkout hand-off</span></button>
+        </div>
+      </div>
+
+      <!-- KIT -->
+      <div class="screen" id="kit">
+        <button class="back" onclick="go('home')">← All tasks</button>
+        <h2 class="disp" id="kitTitle">Your starter kit</h2>
+        <p class="sub" id="kitSub"></p>
+        <div id="kitNotes"></div>
+        <div class="sumbar">
+          <div><div class="k">Kit total</div><div class="v" id="kitTot">₹0</div></div>
+          <div style="flex:1"><div class="k" id="kitBudLbl">of budget</div><div class="meter"><i id="kitMeter" style="width:0"></i></div></div>
+          <button class="cta sm" style="background:var(--acc);color:var(--ink)" onclick="addKit()">Add whole kit to basket</button>
+        </div>
+        <div class="grid g4" id="kitGrid"></div>
+        <div class="lbl">Alternatives I considered</div>
+        <div class="grid g4" id="kitAlt"></div>
+      </div>
+
+      <!-- SIZE -->
+      <div class="screen" id="size">
+        <button class="back" onclick="go('home')">← All tasks</button>
+        <h2 class="disp">Find my size</h2>
+        <p class="sub">Measurements in, a size out, plus how confident I am. Trying it on is still the final word.</p>
+        <div class="grid g2">
+          <div class="card">
+            <b style="font-size:18px">👟 Shoe size</b>
+            <div class="lbl">Foot length (heel to longest toe)</div>
+            <div class="row"><span class="bigval" id="footVal">26.0 cm</span></div>
+            <input type="range" min="20" max="32" step="0.5" value="26" id="foot" oninput="calcShoe()">
+            <div class="disc">Tip: stand on the floor mat marked in cm next to this kiosk.</div>
+            <div id="shoeOut" style="margin-top:12px"></div>
+          </div>
+          <div class="card">
+            <b style="font-size:18px">👕 Apparel size</b>
+            <div class="lbl">Chest circumference</div>
+            <div class="row"><span class="bigval" id="chestVal">96 cm</span></div>
+            <input type="range" min="76" max="130" step="1" value="96" id="chest" oninput="calcApp()">
+            <div class="lbl">Fit preference</div>
+            <div class="grid g3" id="fitOpts"></div>
+            <div id="appOut" style="margin-top:12px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMPARE -->
+      <div class="screen" id="compare">
+        <button class="back" onclick="go('home')">← All tasks</button>
+        <h2 class="disp">Compare products</h2>
+        <p class="sub">Pick any two from your sport. I'll mark the winner on each attribute and give you a verdict. The choice stays yours.</p>
+        <div class="grid g2" style="margin-bottom:18px">
+          <select class="sel" id="cmpA" onchange="renderCompare()"></select>
+          <select class="sel" id="cmpB" onchange="renderCompare()"></select>
+        </div>
+        <div id="cmpOut"></div>
+      </div>
+
+      <!-- LOCATE -->
+      <div class="screen" id="locate">
+        <button class="back" onclick="go('home')">← All tasks</button>
+        <h2 class="disp">Find it in store</h2>
+        <p class="sub" id="locSub">Tap a sport to light up its aisle.</p>
+        <div class="chips" id="locChips"></div>
+        <div class="grid" style="grid-template-columns:1.4fr 1fr">
+          <div class="map" id="mapBox"></div>
+          <div id="locList"></div>
+        </div>
+      </div>
+
+      <!-- CHAT -->
+      <div class="screen" id="chat">
+        <div class="chat">
+          <div class="row" style="justify-content:space-between"><button class="back" onclick="go('home')">← All tasks</button><span class="disc">Rule-based demo agent · no data leaves this device</span></div>
+          <div class="msgs" id="msgs"></div>
+          <div class="chips" id="chatChips"></div>
+          <div class="inbar"><input id="chatIn" placeholder="Type what you need…" onkeydown="if(event.key==='Enter')sendChat()"><button class="mic" title="Voice (demo)" onclick="toast('Voice input is a planned feature in this concept')">🎙️</button><button class="cta sm" onclick="sendChat()">Send</button></div>
+        </div>
+      </div>
+
+      <!-- CART -->
+      <div class="screen" id="cart">
+        <button class="back" onclick="go('home')">← All tasks</button>
+        <h2 class="disp">My basket</h2>
+        <p class="sub">Check everything. When you're ready, I'll send this basket to the billing counter. You pay there.</p>
+        <div id="cartOut"></div>
+      </div>
+
+    </section>
+
+    <!-- TRANSPARENCY PANEL -->
+    <aside>
+      <div class="as-h">Agent transparency</div>
+      <div class="as-s">What the agent is doing, how much it may decide by itself, and which guardrails are active.</div>
+      <div class="steps" id="steps"></div>
+      <div class="sec"><h4>What I know about you</h4><div id="known"></div></div>
+      <div class="sec"><h4>Live decision log</h4><div class="log" id="log"></div></div>
+      <div class="sec"><h4>Guardrails always on</h4><div id="grds"></div></div>
+      <div class="sec disc">Academic concept prototype for a PGPBL assignment (IIM Kozhikode). Not affiliated with or endorsed by Decathlon. Products and prices are illustrative.</div>
+    </aside>
+  </div>
+
+  <footer>
+    <button class="fbtn staff" onclick="callStaff()">🙋 Call a staff member</button>
+    <button class="fbtn" onclick="openCart()">🧺 Basket (<span id="cartN">0</span>)</button>
+    <div class="fsp"></div>
+    <span id="idleTxt">Session auto-clears after 90 s of inactivity</span>
+    <button class="fbtn" onclick="endSession(true)">✕ End & erase session</button>
+  </footer>
+</div>
+
+<div class="modal" id="modal"><div class="mbox" id="mbox"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------------- DATA ---------------- */
+const SPORTS={
+ running:{n:'Running',ic:'🏃',aisle:'A',kit:['shoes','top','socks','hydration']},
+ cycling:{n:'Cycling',ic:'🚴',aisle:'B',kit:['helmet','bike','lights','apparel']},
+ trekking:{n:'Trekking',ic:'🥾',aisle:'C',kit:['shoes','bag','top','hydration','poles']},
+ badminton:{n:'Badminton',ic:'🏸',aisle:'D',kit:['racket','shuttle','shoes']},
+ fitness:{n:'Fitness & Yoga',ic:'🧘',aisle:'E',kit:['mat','bands','weights','top']},
+ swimming:{n:'Swimming',ic:'🏊',aisle:'F',kit:['goggles','cap','apparel','towel']}
+};
+const LV=['beginner','intermediate','advanced'];
+// id, sport, cat, name, price, rating, level, stock, emoji, features, safety
+const P=[
+ ['r1','running','shoes','Road running shoe, cushioned',2499,4.5,'beginner',14,'👟',['Soft cushioned midsole','Breathable mesh upper','Up to ~600 km life']],
+ ['r2','running','shoes','Running shoe, responsive foam',4999,4.6,'intermediate',0,'👟',['Energy-return foam','Rubber grip outsole','Tempo and long runs']],
+ ['r3','running','shoes','Carbon-plate racing shoe',11999,4.4,'advanced',3,'👟',['Carbon plate','Race-day weight 210 g','For experienced runners']],
+ ['r4','running','top','Running T-shirt, quick-dry',399,4.5,'beginner',40,'👕',['Wicks sweat','Reflective strip']],
+ ['r8','running','top','Running T-shirt, seamless',899,4.6,'intermediate',18,'👕',['Seamless, anti-chafe','Mesh ventilation zones']],
+ ['r5','running','socks','Running socks, 3 pairs',349,4.6,'beginner',55,'🧦',['Cushioned heel','Anti-blister']],
+ ['r6','running','hydration','Soft flask, 500 ml',599,4.3,'beginner',22,'💧',['Squeezable','Fits a pocket']],
+ ['r7','running','tech','GPS running watch',6999,4.3,'intermediate',6,'⌚',['GPS pace and distance','Heart-rate sensor']],
+ ['c1','cycling','bike','Hybrid city bike',14999,4.5,'beginner',5,'🚲',['7 speeds','Upright riding position','Mudguards included']],
+ ['c2','cycling','bike','Road bike, aluminium',39999,4.6,'intermediate',2,'🚴',['16 speeds','Drop handlebar','9.8 kg']],
+ ['c3','cycling','helmet','Cycling helmet, urban',1299,4.6,'beginner',30,'⛑️',['Certified to safety standard','Rear LED light'],true],
+ ['c7','cycling','helmet','Road helmet, ventilated',2999,4.5,'intermediate',9,'⛑️',['18 air vents','Light 260 g'],true],
+ ['c5','cycling','lights','Bike lights set, USB',699,4.4,'beginner',25,'🔦',['Front and rear','USB rechargeable'],true],
+ ['c4','cycling','apparel','Padded cycling shorts',999,4.4,'beginner',20,'🩳',['Gel-free foam pad','Comfort up to 2 h']],
+ ['c6','cycling','lock','U-lock',899,4.3,'beginner',16,'🔒',['Hardened steel']],
+ ['t1','trekking','shoes','Waterproof hiking shoe',3499,4.6,'beginner',12,'🥾',['Waterproof membrane','Grippy lugged sole']],
+ ['t6','trekking','shoes','Mid-cut trekking boot',5999,4.7,'intermediate',4,'🥾',['Ankle support','Waterproof leather']],
+ ['t2','trekking','bag','Trekking backpack, 30 L',1999,4.5,'beginner',15,'🎒',['Ventilated back','Rain cover']],
+ ['t3','trekking','top','Fleece jacket',999,4.6,'beginner',30,'🧥',['Warm, lightweight','Packs small']],
+ ['t4','trekking','poles','Trekking poles, pair',1499,4.3,'intermediate',10,'🦯',['Adjustable','Takes load off the knees']],
+ ['t5','trekking','hydration','Water bottle, 1 L',399,4.4,'beginner',40,'💧',['Leak-proof','BPA-free']],
+ ['b1','badminton','racket','Badminton racket, starter',999,4.4,'beginner',25,'🏸',['Aluminium frame','Forgiving sweet spot']],
+ ['b2','badminton','racket','Graphite racket, 85 g',3499,4.6,'intermediate',8,'🏸',['Full graphite','Head-heavy for smashes']],
+ ['b3','badminton','shuttle','Nylon shuttles, pack of 6',499,4.3,'beginner',35,'🪶',['Durable','Good for practice']],
+ ['b6','badminton','shuttle','Feather shuttles, pack of 6',899,4.5,'intermediate',20,'🪶',['True flight','Match play']],
+ ['b4','badminton','shoes','Badminton court shoes',2299,4.5,'beginner',11,'👟',['Non-marking gum sole','Lateral support']],
+ ['y1','fitness','mat','Yoga / fitness mat, 8 mm',999,4.6,'beginner',30,'🧘',['Extra-thick 8 mm','Non-slip']],
+ ['y2','fitness','weights','Dumbbell set, 10 kg',1999,4.5,'beginner',10,'🏋️',['Adjustable plates','Case included']],
+ ['y3','fitness','bands','Resistance bands, set of 3',699,4.4,'beginner',28,'🪢',['3 resistance levels','Exercise guide']],
+ ['y4','fitness','top','Training T-shirt',349,4.4,'beginner',50,'👕',['Breathable','Stretch fabric']],
+ ['s1','swimming','goggles','Swim goggles, anti-fog',499,4.4,'beginner',30,'🥽',['Anti-fog coating','UV protection']],
+ ['s2','swimming','cap','Silicone swim cap',299,4.5,'beginner',40,'🧢',['Durable silicone','One size']],
+ ['s3','swimming','apparel','Swimsuit, chlorine-resistant',999,4.4,'beginner',24,'🩱',['Chlorine-resistant','Quick-dry']],
+ ['s4','swimming','kick','Kickboard',399,4.3,'beginner',15,'🟦',['Leg drills','Foam']],
+ ['s5','swimming','towel','Microfibre towel',599,4.5,'beginner',20,'🧻',['Dries fast','Compact']]
+].map(a=>({id:a[0],sport:a[1],cat:a[2],name:a[3],price:a[4],rating:a[5],level:a[6],stock:a[7],em:a[8],feat:a[9],safety:!!a[10]}));
+const byId=id=>P.find(p=>p.id===id);
+const inr=n=>'₹'+n.toLocaleString('en-IN');
+
+const STAGES=[
+ {n:'Understand needs',a:'Asks you',c:'a1'},
+ {n:'Search catalogue',a:'Autonomous',c:'a3'},
+ {n:'Shortlist & rank',a:'Autonomous',c:'a3'},
+ {n:'Compare & advise',a:'Recommends',c:'a2'},
+ {n:'Add to basket',a:'Your tap only',c:'a1'},
+ {n:'Payment',a:'Human only',c:'a0'}
+];
+const GUARDS=[
+ ['💳','<b>No payment</b> at the kiosk. Basket goes to a cashier.'],
+ ['💰','<b>Budget cap:</b> never exceeds it without asking.'],
+ ['⛑️','<b>Safety first:</b> safety items are never dropped to save money.'],
+ ['🩺','<b>No medical advice:</b> pain or injury goes to staff or a doctor.'],
+ ['📦','<b>Honest stock:</b> out-of-stock items are flagged, never hidden.'],
+ ['🧒','<b>Kids:</b> items for children need an adult to confirm.'],
+ ['🔒','<b>Privacy:</b> session data erased on exit or after 90 s idle.'],
+ ['🚫','<b>No dark patterns:</b> no fake urgency, no upsell over 10% of budget.'],
+ ['🙋','<b>Human override:</b> staff can be called at any time.']
+];
+
+/* ---------------- STATE ---------------- */
+let S;
+function fresh(){S={mode:null,sport:null,level:null,budget:5000,fit:'regular',cart:[],stage:0,done:-1,member:null,chatInit:false,kit:[]};}
+fresh();
+
+/* ---------------- UI HELPERS ---------------- */
+const $=id=>document.getElementById(id);
+function go(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));$(id).classList.add('on');$('stage').scrollTop=0;}
+function toast(t){const e=$('toast');e.textContent=t;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),2600);}
+function setStage(i){S.done=Math.max(S.done,i-1);S.stage=i;renderSteps();}
+function renderSteps(){$('steps').innerHTML=STAGES.map((s,i)=>`<div class="step ${i===S.stage?'cur':i<=S.done?'done':''}"><span class="n">${i<=S.done&&i!==S.stage?'✓':i+1}</span><span>${s.n}</span><span class="aut ${s.c}">${s.a}</span></div>`).join('');}
+function log(t,k=''){const d=document.createElement('div');d.className=k;d.innerHTML=t;$('log').prepend(d);}
+function renderKnown(){
+ const r=[['Session',S.mode?S.mode==='member'?'Member (opted in)':'Guest (anonymous)':'—'],['Sport',S.sport?SPORTS[S.sport].n:'—'],['Level',S.level||'—'],['Budget',S.sport?inr(S.budget):'—'],['Basket',S.cart.length+' items · '+inr(cartTotal())]];
+ if(S.member){r.push(['Saved shoe size','EU '+S.member.shoe]);r.push(['History used','Yes · tap to turn off']);}
+ $('known').innerHTML=r.map(([k,v])=>`<div class="kv"><span>${k}</span><span ${k==='History used'?'style="color:var(--pri);cursor:pointer" onclick="forgetMember()"':''}>${v}</span></div>`).join('');
+ $('cartN').textContent=S.cart.length;$('homeCartN').textContent=S.cart.length?`(${S.cart.length})`:'';
+}
+$('grds').innerHTML=GUARDS.map(g=>`<div class="grd"><span>${g[0]}</span><span>${g[1]}</span></div>`).join('');
+
+/* ---------------- FLOW ---------------- */
+function startGuest(){S.mode='guest';$('hdrUser').textContent='👤 Guest session';log('Guest mode. Only this session\'s answers will be used.');setStage(0);buildProfile();go('profile');renderKnown();}
+function startMember(){
+ S.mode='member';S.member={name:'Rohan',shoe:42,last:{id:'r1',months:9},sport:'running'};
+ $('hdrUser').textContent='👤 Rohan · member (demo)';
+ log('Member QR scanned (demo). Using purchase history and saved size, with consent.','x');
+ S.sport='running';S.level='beginner';setStage(0);buildProfile();go('profile');
+ $('profSub').textContent='Welcome back, Rohan. I\'ve pre-filled from your history. Change anything you like.';renderKnown();
+}
+function forgetMember(){S.member=null;S.mode='guest';$('hdrUser').textContent='👤 Guest session';log('You turned off history. Saved profile removed from this session.','g');renderKnown();toast('Personal history turned off');}
+function buildProfile(){
+ $('sportOpts').innerHTML=Object.entries(SPORTS).map(([k,s])=>`<button class="opt ${S.sport===k?'sel':''}" onclick="S.sport='${k}';buildProfile()">${s.ic} ${s.n}</button>`).join('');
+ $('lvlOpts').innerHTML=[['beginner','🌱 Just starting'],['intermediate','🔥 Regular'],['advanced','🏆 Competitive']].map(([k,t])=>`<button class="opt ${S.level===k?'sel':''}" onclick="S.level='${k}';buildProfile()">${t}</button>`).join('');
+ $('profNext').disabled=!(S.sport&&S.level);renderKnown();
+}
+function setBudget(v){S.budget=+v;$('budVal').textContent=inr(+v);renderKnown();}
+function confirmProfile(){
+ if(S.sport==='cycling'&&S.budget<16000){toast('Heads-up: a bike plus a helmet usually needs ₹16,000 or more');}
+ log(`Needs captured: <b>${SPORTS[S.sport].n}</b>, ${S.level}, budget ${inr(S.budget)}.`);
+ setStage(1);
+ $('homeTitle').textContent=`${SPORTS[S.sport].ic} ${SPORTS[S.sport].n} · what's next?`;
+ $('homeSub').textContent=`Level: ${S.level} · Budget: ${inr(S.budget)}. Pick a task. You can come back here any time.`;
+ $('memberNudge').innerHTML='';
+ if(S.member&&S.sport==='running'){
+  $('memberNudge').innerHTML=`<div class="note b" style="margin-bottom:16px">💡 <div><b>Personal insight:</b> you bought the <b>${byId('r1').name}</b> about ${S.member.last.months} months ago. At 3 runs a week that's roughly 500 to 600 km, which is near the end of its cushioning life. Want me to include a replacement in your kit?</div></div>`;
+  log('Used purchase history: possible shoe replacement flagged (a suggestion, not an action).','x');
+ }
+ go('home');
+}
+
+/* ---------------- TASK 1: STARTER KIT ---------------- */
+function score(p){const lm=1-Math.abs(LV.indexOf(p.level)-LV.indexOf(S.level))*0.5;return p.rating*2+lm*3-(p.stock?0:5);}
+function openKit(){
+ setStage(1);log(`Searching ${P.filter(p=>p.sport===S.sport).length} ${SPORTS[S.sport].n} products in the store catalogue…`);
+ const cats=[...SPORTS[S.sport].kit];
+ // safety items first
+ cats.sort((a,b)=>(P.some(p=>p.cat===b&&p.safety)?1:0)-(P.some(p=>p.cat===a&&p.safety)?1:0));
+ let left=S.budget,kit=[],notes=[],alts=[];
+ const minOf=c=>Math.min(...P.filter(p=>p.sport===S.sport&&p.cat===c&&p.stock).map(p=>p.price));
+ cats.forEach((c,i)=>{
+  const rest=cats.slice(i+1).reduce((s,x)=>s+(isFinite(minOf(x))?minOf(x):0),0);
+  const cands=P.filter(p=>p.sport===S.sport&&p.cat===c).sort((a,b)=>score(b)-score(a));
+  const oos=cands.filter(p=>!p.stock);
+  oos.forEach(o=>{if(score(o)+5>=score(cands.find(x=>x.stock)||o))notes.push(['w',`📦 <b>${o.name}</b> would suit you but is <b>out of stock</b> in this store. Ask staff about home delivery.`]);});
+  const inS=cands.filter(p=>p.stock);
+  let pick=inS.find(p=>p.price<=left-rest)||inS.find(p=>p.price<=left);
+  const safe=inS.some(p=>p.safety);
+  if(!pick&&safe){pick=inS.sort((a,b)=>a.price-b.price)[0];notes.push(['r',`⛑️ Safety item <b>${pick.name}</b> pushes you over budget. I won't drop it, so you decide whether to raise the budget.`]);}
+  if(pick){kit.push(pick);left-=pick.price;inS.filter(p=>p!==pick).slice(0,1).forEach(a=>alts.push(a));}
+  else notes.push(['w',`💰 No <b>${c}</b> fits the remaining ${inr(Math.max(left,0))}. I left it out rather than go over budget.`]);
+ });
+ if(S.sport==='cycling'&&!kit.some(p=>p.cat==='bike'))notes.unshift(['b','🚲 Your budget covers the safety gear but not a bike. I\'ve prioritised the helmet and lights so you can ride safely if you already own a bike.']);
+ if(S.member&&S.sport==='running')notes.unshift(['g',`👟 Using your saved shoe size <b>EU ${S.member.shoe}</b> for the shoes.`]);
+ S.kit=kit;setStage(2);
+ const tot=kit.reduce((s,p)=>s+p.price,0);
+ log(`Shortlisted ${kit.length} items, total ${inr(tot)} (${Math.round(tot/S.budget*100)}% of budget). Ranked by rating, level fit and stock.`,'x');
+ notes.filter(n=>n[0]==='r'||n[0]==='w').forEach(n=>log('Guardrail: '+n[1].replace(/<[^>]+>/g,''),'g'));
+ $('kitTitle').textContent=`${SPORTS[S.sport].ic} Your ${SPORTS[S.sport].n.toLowerCase()} starter kit`;
+ $('kitSub').textContent=`Built for a ${S.level} with ${inr(S.budget)}. I picked these on my own; nothing goes into your basket until you tap.`;
+ $('kitNotes').innerHTML=notes.map(n=>`<div class="note ${n[0]}">${n[1]}</div>`).join('');
+ $('kitTot').textContent=inr(tot);$('kitBudLbl').textContent=`${Math.round(tot/S.budget*100)}% of ${inr(S.budget)} budget · ${inr(Math.max(S.budget-tot,0))} left`;
+ $('kitMeter').style.width=Math.min(100,tot/S.budget*100)+'%';$('kitMeter').style.background=tot>S.budget?'var(--bad)':'var(--acc)';
+ $('kitGrid').innerHTML=kit.map(p=>card(p,why(p))).join('')||'<div class="note w">Nothing fits this budget yet. Try raising it on the profile screen.</div>';
+ $('kitAlt').innerHTML=alts.map(p=>card(p,p.price>(kit.find(k=>k.cat===p.cat)||{}).price?'Upgrade option, if you want to spend a little more':'Cheaper alternative')).join('')||'<span class="disc">No alternatives in stock.</span>';
+ go('kit');
+}
+function why(p){
+ const r=[];if(p.level===S.level)r.push(`made for ${p.level}s`);if(p.rating>=4.5)r.push(`rated ${p.rating}★`);if(p.safety)r.push('safety essential');
+ return 'Why: '+(r.join(', ')||'best value in budget');
+}
+function card(p,whyTxt){
+ const inC=S.cart.some(c=>c.id===p.id);
+ const b=!p.stock?'<span class="badge b-oos">Out of stock</span>':p.safety?'<span class="badge b-safe">Safety</span>':'';
+ return `<div class="prod">${b}<div class="thumb">${p.em}</div><div class="nm">${p.name}</div>
+ <div class="meta"><span>★ ${p.rating}</span><span>${p.level}</span><span>Aisle ${SPORTS[p.sport].aisle}${'123456'[P.filter(x=>x.sport===p.sport).indexOf(p)%6]}</span><span>${p.stock?p.stock+' on shelf':'Online only'}</span></div>
+ <div class="price">${inr(p.price)}</div>${whyTxt?`<div class="why">${whyTxt}</div>`:''}<div class="feat">${p.feat.join(' · ')}</div>
+ <button class="addbtn ${inC?'in':''}" ${p.stock?'':'disabled'} onclick="toggleCart('${p.id}',this)">${!p.stock?'Ask staff':inC?'✓ In basket':'+ Add to basket'}</button></div>`;
+}
+
+/* ---------------- CART ---------------- */
+const cartTotal=()=>S.cart.reduce((s,c)=>s+c.price,0);
+function toggleCart(id,btn){
+ const p=byId(id),i=S.cart.findIndex(c=>c.id===id);
+ if(i>=0){S.cart.splice(i,1);log(`You removed ${p.name}.`);}
+ else{
+  if(cartTotal()+p.price>S.budget){
+   modal(`<h3>This goes over your budget</h3><p>Adding <b>${p.name}</b> (${inr(p.price)}) brings your basket to <b>${inr(cartTotal()+p.price)}</b>, which is ${inr(cartTotal()+p.price-S.budget)} over your ${inr(S.budget)} budget.</p><div class="row" style="justify-content:center"><button class="cta ghost sm" onclick="closeModal()">Keep my budget</button><button class="cta sm" onclick="forceAdd('${id}')">Add anyway</button></div>`);
+   log('Guardrail: budget cap reached, asked you before adding.','g');return;
+  }
+  S.cart.push(p);setStage(4);log(`<b>You</b> added ${p.name}. The agent never adds items by itself.`,'x');
+ }
+ if(btn){btn.classList.toggle('in');btn.textContent=S.cart.some(c=>c.id===id)?'✓ In basket':'+ Add to basket';}
+ renderKnown();if($('cart').classList.contains('on'))openCart();
+}
+function forceAdd(id){S.cart.push(byId(id));closeModal();log('You approved going over budget.','g');renderKnown();setStage(4);document.querySelectorAll('.screen.on .addbtn').forEach(()=>{});refreshCards();}
+function refreshCards(){if($('kit').classList.contains('on'))openKitRefresh();}
+function openKitRefresh(){ $('kitGrid').innerHTML=S.kit.map(p=>card(p,why(p))).join('');}
+function addKit(){
+ const add=S.kit.filter(p=>!S.cart.some(c=>c.id===p.id));
+ const t=cartTotal()+add.reduce((s,p)=>s+p.price,0);
+ const go_=()=>{add.forEach(p=>S.cart.push(p));closeModal();setStage(4);log(`<b>You</b> confirmed the kit: ${add.length} items added.`,'x');renderKnown();openKitRefresh();toast(`${add.length} items added to basket`);};
+ if(!add.length){toast('Kit is already in your basket');return;}
+ modal(`<h3>Add ${add.length} items?</h3><p>${add.map(p=>p.name).join(', ')}.<br><br>Basket total will be <b>${inr(t)}</b>${t>S.budget?` <span style="color:var(--bad)">(over budget)</span>`:''}.</p><div class="row" style="justify-content:center"><button class="cta ghost sm" onclick="closeModal()">Not yet</button><button class="cta sm" id="okKit">Yes, add them</button></div>`);
+ $('okKit').onclick=go_;
+}
+function openCart(){
+ if(!S.mode){toast('Start a session first');return;}
+ const t=cartTotal();
+ $('cartOut').innerHTML=!S.cart.length?'<div class="note b">Your basket is empty. Build a starter kit or ask me for something.</div>':
+ `<div class="card">${S.cart.map(p=>`<div class="kv" style="padding:12px 0;border-bottom:1px solid var(--line);font-size:16px"><span>${p.em} ${p.name} <span class="disc">· Aisle ${SPORTS[p.sport].aisle}</span></span><span>${inr(p.price)} <button style="color:var(--bad);margin-left:12px" onclick="toggleCart('${p.id}')">Remove</button></span></div>`).join('')}
+ <div class="kv" style="font-size:22px;padding-top:14px"><span>Total</span><span class="disp" style="font-size:32px">${inr(t)}</span></div>
+ <div class="kv"><span>Your budget</span><span style="color:${t>S.budget?'var(--bad)':'var(--ok)'}">${inr(S.budget)} · ${t>S.budget?inr(t-S.budget)+' over':inr(S.budget-t)+' left'}</span></div></div>
+ ${S.cart.some(p=>p.sport==='cycling')&&!S.cart.some(p=>p.cat==='helmet')?'<div class="note r">⛑️ You have cycling gear but no helmet. Please consider one; it is the most important safety item.</div>':''}
+ <div class="note b">🔒 The kiosk does not take payment. I'll create a basket code; a staff member will pick the items and you pay at the billing counter.</div>
+ <div class="row"><button class="cta" onclick="handoff()">Send to billing counter →</button><button class="cta ghost" onclick="go('home')">Keep shopping</button></div>`;
+ go('cart');
+}
+function handoff(){
+ setStage(5);S.done=4;renderSteps();
+ const code='KX-'+Math.floor(1000+Math.random()*9000);
+ log(`Basket ${code} sent to the billing counter. Payment is handled by a human cashier.`,'x');
+ let q='';for(let y=0;y<11;y++)for(let x=0;x<11;x++){const corner=(x<3&&y<3)||(x>7&&y<3)||(x<3&&y>7);if(corner?!(x%2&&y%2)||((x==1||x==9)&&(y==1||y==9)):Math.random()>.5)q+=`<rect x="${x*10}" y="${y*10}" width="10" height="10"/>`;}
+ modal(`<h3>Basket sent ✓</h3><p>Show this code at <b>Billing counter 2</b>. Staff will bring your items, or you can pick them from the aisles shown.</p><div class="code">${code}</div><svg class="qr" viewBox="0 0 110 110" fill="#0e1b2c">${q}</svg><p class="disc">Demo code, not scannable. Total ${inr(cartTotal())}. This kiosk session is erased now.</p><button class="cta" onclick="endSession(false)">Done</button>`);
+}
+
+/* ---------------- TASK 2: SIZE ---------------- */
+function openSize(){setStage(3);
+ if(S.member){$('foot').value=27;}
+ $('fitOpts').innerHTML=['snug','regular','relaxed'].map(f=>`<button class="opt ${S.fit===f?'sel':''}" onclick="S.fit='${f}';openSizeFit()">${f}</button>`).join('');
+ calcShoe();calcApp();go('size');log('Size finder opened. Measurements stay on this screen and are not stored.');}
+function openSizeFit(){$('fitOpts').innerHTML=['snug','regular','relaxed'].map(f=>`<button class="opt ${S.fit===f?'sel':''}" onclick="S.fit='${f}';openSizeFit()">${f}</button>`).join('');calcApp();}
+function calcShoe(){
+ const l=+$('foot').value;$('footVal').textContent=l.toFixed(1)+' cm';
+ const eu=Math.round(1.5*(l+1.5));const uk=eu-33;
+ const run=S.sport==='running'||S.sport==='badminton';
+ $('shoeOut').innerHTML=`<div class="note g">👟 <div>Recommended: <b>EU ${run?eu+1:eu} / UK ${run?uk+1:uk}</b>${run?`<br><span class="disc">I sized up one for ${SPORTS[S.sport].n.toLowerCase()}: your feet swell during activity, so leave a thumb's width at the toe.</span>`:''}${S.member?`<br><span class="disc">Your saved size is EU ${S.member.shoe}. ${Math.abs((run?eu+1:eu)-S.member.shoe)<=1?'Consistent ✓':'Different, so please try both.'}</span>`:''}</div></div><div class="disc">Confidence: ${l%1===0?'high':'medium, as you are between sizes. Try both'}.</div>`;
+}
+function calcApp(){
+ const c=+$('chest').value;$('chestVal').textContent=c+' cm';
+ const T=[[84,'XS'],[92,'S'],[100,'M'],[108,'L'],[116,'XL'],[999,'XXL']];
+ let i=T.findIndex(t=>c<t[0]);const edge=c>=T[i][0]-2;
+ if(S.fit==='relaxed'&&edge)i=Math.min(i+1,5);if(S.fit==='snug'&&c<=(i?T[i-1][0]+2:0))i=Math.max(i-1,0);
+ $('appOut').innerHTML=`<div class="note g">👕 <div>Recommended: <b>${T[i][1]}</b> (${S.fit} fit)${edge?`<br><span class="disc">You're at the top of this size; ${T[Math.min(i+1,5)][1]} may feel better for layering.</span>`:''}</div></div>`;
+}
+
+/* ---------------- TASK 3: COMPARE ---------------- */
+function openCompare(a,b){
+ setStage(3);const list=P.filter(p=>p.sport===S.sport);
+ const opts=list.map(p=>`<option value="${p.id}">${p.name} · ${inr(p.price)}</option>`).join('');
+ $('cmpA').innerHTML=opts;$('cmpB').innerHTML=opts;
+ const sameCat=list.filter(p=>p.cat===list[0].cat);
+ $('cmpA').value=a||sameCat[0].id;$('cmpB').value=b||(sameCat[1]||list[1]).id;
+ renderCompare();go('compare');
+}
+function renderCompare(){
+ const A=byId($('cmpA').value),B=byId($('cmpB').value);
+ const lvlFit=p=>1-Math.abs(LV.indexOf(p.level)-LV.indexOf(S.level));
+ const rows=[
+  ['Price',inr(A.price),inr(B.price),A.price<B.price?0:A.price>B.price?1:-1],
+  ['Rating',A.rating+' ★',B.rating+' ★',A.rating>B.rating?0:A.rating<B.rating?1:-1],
+  ['Made for',A.level,B.level,lvlFit(A)>lvlFit(B)?0:lvlFit(A)<lvlFit(B)?1:-1],
+  ['In stock here',A.stock?A.stock+' units':'No',B.stock?B.stock+' units':'No',!!A.stock===!!B.stock?-1:A.stock?0:1],
+  ['Key features',A.feat.join('<br>'),B.feat.join('<br>'),-1],
+  ['Fits your budget',A.price<=S.budget?'Yes':'No',B.price<=S.budget?'Yes':'No',(A.price<=S.budget)===(B.price<=S.budget)?-1:A.price<=S.budget?0:1]
+ ];
+ const sc=[0,0];rows.forEach(r=>{if(r[3]>=0)sc[r[3]]++;});
+ const W=sc[0]>=sc[1]?A:B,L=W===A?B:A;
+ let v=A.id===B.id?'Pick two different products to compare.':
+  A.cat!==B.cat?`These are different kinds of product (${A.cat} vs ${B.cat}), so they're complements rather than alternatives. You may need both.`:
+  `For a <b>${S.level}</b> on a ${inr(S.budget)} budget, I'd lean towards <b>${W.name}</b>. It wins ${Math.max(...sc)} of ${rows.filter(r=>r[3]>=0).length} measurable criteria. ${L.price>W.price?`The ${L.name} costs ${inr(L.price-W.price)} more, and that only pays off if you're ${L.level==='beginner'?'casual':'training seriously'}.`:`The ${L.name} is ${inr(W.price-L.price)} cheaper, which makes it a fair choice if price matters most.`}`;
+ if(!W.stock)v+=' <b>Note:</b> it is out of stock here; ask staff about delivery.';
+ $('cmpOut').innerHTML=`<table class="cmp"><tr><th></th><th style="width:39%">${A.em} ${A.name}</th><th style="width:39%">${B.em} ${B.name}</th></tr>${rows.map(r=>`<tr><th>${r[0]}</th><td class="${r[3]===0?'win':''}">${r[1]}</td><td class="${r[3]===1?'win':''}">${r[2]}</td></tr>`).join('')}</table>
+ <div class="note b" style="margin-top:16px">🤖 <div><b>My recommendation (you decide):</b> ${v}</div></div>
+ <div class="row" style="margin-top:8px"><button class="cta sm" onclick="toggleCart('${A.id}')">+ Add ${A.name.split(',')[0]}</button><button class="cta sm ghost" onclick="toggleCart('${B.id}')">+ Add ${B.name.split(',')[0]}</button></div>`;
+ log(`Compared ${A.name} vs ${B.name}. Recommended ${W.name}, and the decision stays with you.`);
+}
+
+/* ---------------- TASK 4: LOCATE ---------------- */
+let locSport=null;
+function openLocate(s){
+ setStage(2);locSport=s||S.sport;
+ $('locChips').innerHTML=Object.entries(SPORTS).map(([k,v])=>`<button class="chip" style="${k===locSport?'background:var(--pri);color:#fff;border-color:var(--pri)':''}" onclick="openLocate('${k}')">${v.ic} ${v.n}</button>`).join('');
+ const zones=Object.entries(SPORTS);
+ let svg=`<svg viewBox="0 0 600 380" width="100%"><rect x="0" y="0" width="600" height="380" rx="16" fill="#f3f6fa"/>`;
+ zones.forEach(([k,v],i)=>{const x=30+(i%3)*190,y=30+Math.floor(i/3)*150,on=k===locSport;
+  svg+=`<g class="zone"><rect x="${x}" y="${y}" width="170" height="120" rx="14" fill="${on?'#1a5fd6':'#fff'}" stroke="${on?'#0f3f96':'#dde3ec'}" stroke-width="2"/><text x="${x+85}" y="${y+50}" text-anchor="middle" font-size="30">${v.ic}</text><text x="${x+85}" y="${y+82}" text-anchor="middle" font-family="Inter" font-weight="700" font-size="15" fill="${on?'#fff':'#0e1b2c'}">Aisle ${v.aisle} · ${v.n}</text></g>`;});
+ svg+=`<rect x="250" y="340" width="100" height="32" rx="8" fill="#ffcf2e"/><text x="300" y="361" text-anchor="middle" font-family="Inter" font-weight="700" font-size="13">📍 You are here</text>`;
+ const tgt=zones.findIndex(([k])=>k===locSport),tx=30+(tgt%3)*190+85,ty=30+Math.floor(tgt/3)*150+120;
+ svg+=`<path d="M300 340 L300 ${ty+10} L${tx} ${ty+10} L${tx} ${ty}" fill="none" stroke="#ffcf2e" stroke-width="4" stroke-dasharray="8 6"/></svg>`;
+ $('mapBox').innerHTML=svg;
+ const L=P.filter(p=>p.sport===locSport);
+ $('locSub').textContent=`${SPORTS[locSport].n} is in Aisle ${SPORTS[locSport].aisle}. Follow the yellow path.`;
+ $('locList').innerHTML=`<div class="card" style="padding:12px 16px">${L.map((p,i)=>`<div class="kv" style="padding:9px 0;border-bottom:1px solid var(--line)"><span>${p.em} ${p.name}</span><span style="color:${p.stock?'var(--ok)':'var(--bad)'}">${SPORTS[p.sport].aisle}${'123456'[i%6]} · ${p.stock?p.stock+' left':'Out'}</span></div>`).join('')}</div>`;
+ go('locate');log(`Showed the aisle map for ${SPORTS[locSport].n} with live shelf stock.`);
+}
+
+/* ---------------- FREE-TEXT AGENT ---------------- */
+const SK={running:['run','jog','marathon'],cycling:['cycl','bike','bicycle','ride'],trekking:['trek','hik','mountain','camp'],badminton:['badminton','shuttle','racket','racquet'],fitness:['yoga','gym','fitness','workout','dumbbell','mat'],swimming:['swim','pool','goggle']};
+const CK={shoes:['shoe','sneaker','boot','footwear'],helmet:['helmet'],racket:['racket','racquet'],top:['t-shirt','tshirt','shirt','jacket','top'],bag:['bag','backpack'],mat:['mat'],goggles:['goggle'],bike:['bike','cycle','bicycle'],weights:['dumbbell','weight'],hydration:['bottle','flask','water'],shuttle:['shuttle']};
+function openChat(){
+ setStage(0);go('chat');
+ if(!S.chatInit){S.chatInit=true;bot(`Hi! Tell me what you need in your own words. I know you're into <b>${SPORTS[S.sport].n.toLowerCase()}</b> with a <b>${inr(S.budget)}</b> budget.`);}
+ $('chatChips').innerHTML=['Running shoes under 3000','Helmet for my 10-year-old','Which racket is better?','Where are yoga mats?','My knee hurts when I run','Can I pay here?'].map(c=>`<button class="chip" onclick="$('chatIn').value='${c}';sendChat()">${c}</button>`).join('');
+ setTimeout(()=>$('chatIn').focus(),100);
+}
+function bot(h){const d=document.createElement('div');d.className='msg a';d.innerHTML=h;$('msgs').append(d);$('msgs').scrollTop=1e6;}
+function sendChat(){
+ const t=$('chatIn').value.trim();if(!t)return;$('chatIn').value='';
+ const d=document.createElement('div');d.className='msg u';d.textContent=t;$('msgs').append(d);
+ setTimeout(()=>respond(t.toLowerCase()),350);
+}
+function respond(q){
+ const has=a=>a.some(w=>q.includes(w));
+ if(has(['pain','hurt','injur','knee','back','ankle','doctor','sprain'])){
+  log('Guardrail: medical topic. Referred to staff or doctor, no diagnosis given.','g');
+  bot(`I'm sorry to hear that. I can't give medical advice. Pain while exercising is worth checking with a doctor or physiotherapist. A staff member can also help with general comfort features, like extra cushioning or support. <div class="chips"><button class="chip" onclick="callStaff()">🙋 Call staff</button></div>`);return;}
+ if(has(['pay','card','upi','checkout','bill'])){
+  log('Guardrail: payment request. Kiosk does not take payments.','g');
+  bot(`I don't handle payments, by design. When you're ready, I'll send your basket to the billing counter and you pay a cashier there. <div class="chips"><button class="chip" onclick="openCart()">🧺 Go to basket</button></div>`);return;}
+ if(has(['kid','child','son','daughter','year-old','yr old'])){
+  log('Guardrail: child product. Adult confirmation and in-person fitting advised.','g');
+  bot(`Happy to help with gear for a child. A couple of rules I follow: an adult must confirm the purchase, and for helmets and shoes I strongly recommend a <b>try-on with the child present</b>, because fit is a safety issue. Children's ranges are in the same aisle, on the lower shelves.`);}
+ if(has(['compare','better','vs','versus','difference'])){bot('Let\'s put them side by side.');setTimeout(()=>openCompare(),600);return;}
+ if(has(['where','aisle','find','locate'])&&!has(['size'])){let s=Object.keys(SK).find(k=>has(SK[k]))||S.sport;bot(`Opening the map for ${SPORTS[s].n}…`);setTimeout(()=>openLocate(s),600);return;}
+ if(has(['size','fit'])){bot('Let\'s work out your size.');setTimeout(openSize,600);return;}
+ if(has(['kit','everything','start','beginner set','bundle'])){bot('Building your starter kit…');setTimeout(openKit,600);return;}
+ // product search
+ setStage(1);
+ const sport=Object.keys(SK).find(k=>has(SK[k]));
+ const cat=Object.keys(CK).find(k=>has(CK[k]));
+ const m=q.match(/(?:under|below|less than|within|upto|up to|max|budget)\s*(?:rs\.?|₹|inr)?\s*(\d[\d,]*)/)||q.match(/(\d{3,6})/);
+ const cap=m?+m[1].replace(/,/g,''):null;
+ let R=P.filter(p=>(!sport||p.sport===sport)&&(!cat||p.cat===cat));
+ if(!sport&&!cat)R=P.filter(p=>p.sport===S.sport);
+ if(cap)R=R.filter(p=>p.price<=cap);
+ R=R.sort((a,b)=>score(b)-score(a)).slice(0,3);
+ setStage(2);
+ log(`Parsed: sport=${sport||'(profile)'}, category=${cat||'any'}, cap=${cap?inr(cap):'none'}. ${R.length} matches ranked.`,'x');
+ if(!R.length){bot(`I couldn't find anything matching${cap?` under ${inr(cap)}`:''}. I won't suggest something over your limit without asking. Want me to show the closest options above it, or call a staff member?`);return;}
+ bot(`Here are my top ${R.length}${cap?` under ${inr(cap)}`:''}, ranked by rating, fit for a ${S.level} and stock. Tap to add any you like:<div class="mini">${R.map(p=>`<div class="prod" style="padding:10px"><div class="thumb" style="height:60px;font-size:30px">${p.em}</div><div class="nm" style="font-size:13.5px">${p.name}</div><div class="price" style="font-size:22px">${inr(p.price)}</div><div class="disc">★ ${p.rating} · ${p.stock?'in stock':'out of stock'}</div><button class="addbtn" style="padding:8px;font-size:13px" ${p.stock?'':'disabled'} onclick="toggleCart('${p.id}',this)">${p.stock?(S.cart.some(c=>c.id===p.id)?'✓ In basket':'+ Add'):'Ask staff'}</button></div>`).join('')}</div>`);
+}
+
+/* ---------------- MISC ---------------- */
+function modal(h){$('mbox').innerHTML=h;$('modal').classList.add('on');}
+function closeModal(){$('modal').classList.remove('on');}
+function callStaff(){log('Customer requested a human. Staff notified (demo).','g');modal(`<h3>🙋 Help is on the way</h3><p>A team member has been notified and will be at <b>Kiosk 03</b> shortly. You can keep browsing in the meantime.</p><button class="cta" onclick="closeModal()">OK</button>`);}
+function endSession(ask){
+ if(ask&&S.mode&&S.cart.length){modal(`<h3>End session?</h3><p>Your basket and everything you told me will be erased from this kiosk.</p><div class="row" style="justify-content:center"><button class="cta ghost sm" onclick="closeModal()">Cancel</button><button class="cta sm" onclick="endSession(false)">Erase & exit</button></div>`);return;}
+ closeModal();fresh();$('log').innerHTML='';$('msgs').innerHTML='';$('hdrUser').textContent='👤 Guest session';
+ $('budget').value=5000;$('budVal').textContent='₹5,000';$('profSub').textContent='Three quick taps. It helps me recommend gear that fits your level and budget.';
+ log('Session erased. No personal data retained.','x');renderSteps();renderKnown();go('attract');
+}
+/* idle timer */
+let idle=0;['pointerdown','keydown','input'].forEach(e=>document.addEventListener(e,()=>idle=0,true));
+setInterval(()=>{if($('attract').classList.contains('on'))return;idle++;
+ const left=90-idle;$('idleTxt').textContent=left<=15?`⏳ Clearing your session in ${left}s. Tap anywhere to stay.`:'Session auto-clears after 90 s of inactivity';
+ if(left<=0){idle=0;endSession(false);toast('Session cleared for your privacy');}},1000);
+
+renderSteps();renderKnown();
+</script>
+</body>
+</html>
