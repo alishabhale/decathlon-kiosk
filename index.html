@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>StrideAI — In-store Shopping Agent (Decathlon concept)</title>
+<title>StrideAI — In-store AI Shopping Agent (retail concept)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -68,6 +68,7 @@ h2.disp{font-size:32px;font-weight:700;margin-bottom:6px}
 .tile .ic{font-size:34px}
 .tile b{font-size:19px}
 .tile span{color:var(--ink2);font-size:14px}
+.tile.hot{border-color:var(--acc);background:#fffdf3}
 .tile .tag{margin-top:auto;align-self:flex-start;font-size:11px;font-weight:700;padding:4px 10px;border-radius:99px;background:var(--pri-l);color:var(--pri-d);text-transform:uppercase;letter-spacing:.4px}
 .opt{padding:16px 18px;border-radius:14px;border:2px solid var(--line);background:#fff;font-weight:600;font-size:16px;text-align:center}
 .opt.sel{border-color:var(--pri);background:var(--pri-l);color:var(--pri-d)}
@@ -109,6 +110,19 @@ input[type=range]{width:100%;accent-color:var(--pri);height:30px}
 .note.g{background:var(--ok-l);color:#0b5a37}
 .note.b{background:var(--pri-l);color:var(--pri-d)}
 .note.r{background:var(--bad-l);color:#7a1820}
+
+/* Fit + trial */
+.conf{height:12px;border-radius:99px;background:#eef2f7;overflow:hidden;margin:6px 0 2px}
+.conf i{display:block;height:100%;border-radius:99px}
+.sig{display:flex;gap:8px;font-size:13.5px;padding:6px 0;border-bottom:1px dashed var(--line);color:var(--ink2)}
+.sig b{color:var(--ink)}
+.tri{display:grid;grid-template-columns:64px 1fr;gap:14px;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.tri .thumb{height:64px;border-radius:12px;background:linear-gradient(135deg,#eef3fb,#dfe8f6);display:grid;place-items:center;font-size:32px}
+.tri .st{font-size:11px;font-weight:800;padding:3px 9px;border-radius:99px;text-transform:uppercase;letter-spacing:.4px}
+.fb{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.fb button{padding:10px 12px;border-radius:12px;border:1.5px solid var(--line);font-weight:600;font-size:13.5px;background:#fff}
+.fb button.ok{border-color:var(--ok);color:var(--ok)}
+.rq{display:flex;justify-content:space-between;gap:8px;font-size:13.5px;padding:8px 10px;border-radius:10px;background:#f6f8fb;margin-bottom:6px}
 
 /* Compare */
 table.cmp{width:100%;border-collapse:separate;border-spacing:0;background:#fff;border-radius:var(--r);overflow:hidden;border:1px solid var(--line)}
@@ -177,10 +191,10 @@ select.sel{width:100%;padding:14px;border-radius:12px;border:2px solid var(--lin
 <body>
 <div class="app" id="app">
   <header>
-    <div class="logo"><div class="logo-mark">S</div><div><b>StrideAI</b><small>In-store shopping agent · concept for Decathlon</small></div></div>
+    <div class="logo"><div class="logo-mark">S</div><div><b>StrideAI</b><small>In-store AI shopping agent · any large-format store</small></div></div>
     <div class="hdr-sp"></div>
     <div class="pill" id="hdrUser">👤 Guest session</div>
-    <div class="pill"><span class="dot"></span>Kiosk 03 · Pune store (demo)</div>
+    <div class="pill">🏬 Demo catalogue: Sports &amp; Outdoor</div><div class="pill"><span class="dot"></span>Kiosk 03 · Demo store</div>
   </header>
 
   <div class="main">
@@ -192,8 +206,8 @@ select.sel{width:100%;padding:14px;border-radius:12px;border:2px solid var(--lin
         <div class="ring" style="width:600px;height:600px;right:-150px;top:-150px"></div>
         <div class="att-in">
           <div class="pill" style="display:inline-flex;margin-bottom:22px">✨ AI shopping assistant</div>
-          <h1 class="disp">Starting a new sport?<br>Let's kit you out, within budget.</h1>
-          <p>Starter kits, sizes, side-by-side comparisons and the aisle to find them in. It takes about 2 minutes.</p>
+          <h1 class="disp">The right pick, in the right size,<br>first time, within budget.</h1>
+          <p>You still try things on. I do the rest: narrow thousands of products to a few, predict the size to bring into the trial room, fetch the next size to your cubicle, and keep you within budget.</p>
           <button class="tapbtn" onclick="go('consent')">Tap to start</button>
           <div class="att-chips"><span>🏃 Running</span><span>🚴 Cycling</span><span>🥾 Trekking</span><span>🏸 Badminton</span><span>🧘 Fitness</span><span>🏊 Swimming</span></div>
         </div>
@@ -238,13 +252,14 @@ select.sel{width:100%;padding:14px;border-radius:12px;border:2px solid var(--lin
         <h1 class="disp" id="homeTitle">What can I help you with?</h1>
         <p class="sub" id="homeSub"></p>
         <div id="memberNudge"></div>
+        <div class="note b" style="margin-bottom:16px">🧭 <div><b>Where I help most:</b> trying on stays with you. I take on the work around it: narrowing the choice, predicting the size to bring in, re-sizing from the trial room, and keeping you within budget.</div></div>
         <div class="grid g3">
-          <button class="tile" onclick="openKit()"><div class="ic">🎒</div><b>Build my starter kit</b><span>A complete, budget-fitted bundle of essentials for your sport and level.</span><span class="tag">Task 1</span></button>
-          <button class="tile" onclick="openSize()"><div class="ic">📏</div><b>Find my size</b><span>Shoe and apparel fit from your measurements, so fewer trips to the trial room.</span><span class="tag">Task 2</span></button>
-          <button class="tile" onclick="openCompare()"><div class="ic">⚖️</div><b>Compare products</b><span>Side by side on price, rating, level and features, with a plain-English verdict.</span><span class="tag">Task 3</span></button>
-          <button class="tile" onclick="openLocate()"><div class="ic">🗺️</div><b>Find it in store</b><span>Aisle map and live shelf stock, plus help if something is out of stock.</span><span class="tag">Task 4</span></button>
-          <button class="tile" onclick="openChat()"><div class="ic">💬</div><b>Just ask</b><span>"Running shoes under 3000", "helmet for my son", "which racket is better"…</span><span class="tag">Free text</span></button>
-          <button class="tile" onclick="openCart()"><div class="ic">🧺</div><b>My basket <span id="homeCartN"></span></b><span>Review, then send it to the billing counter. No payment happens at the kiosk.</span><span class="tag">Checkout hand-off</span></button>
+          <button class="tile" onclick="openKit()"><div class="ic">🎒</div><b>Build my kit</b><span>A complete, budget-fitted set of essentials from thousands of products. Safety items come first.</span><span class="tag">Task 1 · Choose</span></button>
+          <button class="tile" onclick="openSize()"><div class="ic">📏</div><b>Get my size right first time</b><span>Size and confidence for each product, using its fit and return data plus your own history. Take one size into the trial room, not three.</span><span class="tag">Task 2 · Fit</span></button>
+          <button class="tile hot" onclick="openTrial()"><div class="ic">🚪</div><b>Trial-room assistant</b><span>Doesn't fit? Tap why. I check stock and a runner brings the next size or an alternative to your cubicle. No queueing, no getting dressed again.</span><span class="tag">Task 3 · Try on</span></button>
+          <button class="tile" onclick="openCompare()"><div class="ic">⚖️</div><b>Compare products</b><span>Side by side on price, rating, level and features, with a plain-English verdict.</span><span class="tag">Task 4 · Decide</span></button>
+          <button class="tile" onclick="openLocate()"><div class="ic">🗺️</div><b>Find it in store</b><span>Aisle map with live shelf stock, and options if something is out of stock.</span><span class="tag">Navigate</span></button>
+          <button class="tile" onclick="openChat()"><div class="ic">💬</div><b>Just ask</b><span>"Shoes under 3000", "these feel tight", "helmet for my son", "which is better"…</span><span class="tag">Free text</span></button>
         </div>
       </div>
 
@@ -267,25 +282,40 @@ select.sel{width:100%;padding:14px;border-radius:12px;border:2px solid var(--lin
       <!-- SIZE -->
       <div class="screen" id="size">
         <button class="back" onclick="go('home')">← All tasks</button>
-        <h2 class="disp">Find my size</h2>
-        <p class="sub">Measurements in, a size out, plus how confident I am. Trying it on is still the final word.</p>
-        <div class="grid g2">
+        <h2 class="disp">Get my size right first time</h2>
+        <p class="sub">Generic size charts are why people carry three sizes into a trial room. I combine your measurements with <b>this product's</b> fit and return data and your own history, then tell you how sure I am.</p>
+        <div class="grid" style="grid-template-columns:1fr 1.25fr">
           <div class="card">
-            <b style="font-size:18px">👟 Shoe size</b>
+            <b style="font-size:18px">Your measurements</b>
             <div class="lbl">Foot length (heel to longest toe)</div>
             <div class="row"><span class="bigval" id="footVal">26.0 cm</span></div>
-            <input type="range" min="20" max="32" step="0.5" value="26" id="foot" oninput="calcShoe()">
-            <div class="disc">Tip: stand on the floor mat marked in cm next to this kiosk.</div>
-            <div id="shoeOut" style="margin-top:12px"></div>
-          </div>
-          <div class="card">
-            <b style="font-size:18px">👕 Apparel size</b>
+            <input type="range" min="20" max="32" step="0.5" value="26" id="foot" oninput="calcFit()">
+            <div class="disc">Stand on the cm floor mat next to this kiosk.</div>
             <div class="lbl">Chest circumference</div>
             <div class="row"><span class="bigval" id="chestVal">96 cm</span></div>
-            <input type="range" min="76" max="130" step="1" value="96" id="chest" oninput="calcApp()">
+            <input type="range" min="76" max="130" step="1" value="96" id="chest" oninput="calcFit()">
             <div class="lbl">Fit preference</div>
             <div class="grid g3" id="fitOpts"></div>
-            <div id="appOut" style="margin-top:12px"></div>
+          </div>
+          <div class="card">
+            <b style="font-size:18px">Pick the product</b>
+            <select class="sel" id="fitProd" onchange="calcFit()" style="margin-top:10px"></select>
+            <div id="fitOut" style="margin-top:14px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TRIAL ROOM -->
+      <div class="screen" id="trial">
+        <button class="back" onclick="go('home')">← All tasks</button>
+        <h2 class="disp">🚪 Trial-room assistant · Cubicle 4</h2>
+        <p class="sub">The tablet inside the cubicle, or your phone through the QR on the door. You try things on. If something doesn't fit, tap why and I'll send a runner with the next size or a close alternative.</p>
+        <div class="grid" style="grid-template-columns:1.5fr 1fr">
+          <div><div id="trialList"></div>
+            <div class="row" style="margin-top:12px"><button class="cta sm ghost" onclick="scanTag()">📷 Scan a tag (demo)</button><button class="cta sm ghost" id="kitToTrial" onclick="kitToTrial()">🎒 Bring my kit's wearables</button></div></div>
+          <div>
+            <div class="card"><b>🏃 Runner queue</b><div class="disc" style="margin:4px 0 10px">Up to 3 requests at a time. Cancel any of them.</div><div id="runQ"></div></div>
+            <div class="card" style="margin-top:14px"><b>🧠 What I learned this visit</b><div class="disc" style="margin:4px 0 10px">Feeds the next size I predict. Kept for this session only unless you choose to save it.</div><div id="learnBox"></div></div>
           </div>
         </div>
       </div>
@@ -342,7 +372,7 @@ select.sel{width:100%;padding:14px;border-radius:12px;border:2px solid var(--lin
       <div class="sec"><h4>What I know about you</h4><div id="known"></div></div>
       <div class="sec"><h4>Live decision log</h4><div class="log" id="log"></div></div>
       <div class="sec"><h4>Guardrails always on</h4><div id="grds"></div></div>
-      <div class="sec disc">Academic concept prototype for a PGPBL assignment (IIM Kozhikode). Not affiliated with or endorsed by Decathlon. Products and prices are illustrative.</div>
+      <div class="sec disc">Academic concept prototype · PGPBL, IIM Kozhikode · PGPBL/07/033. Store-neutral design: the demo loads a sports &amp; outdoor catalogue, and the same agent works for fashion, footwear or electronics by swapping the catalogue. Products, prices and return statistics are illustrative.</div>
     </aside>
   </div>
 
@@ -372,13 +402,15 @@ const LV=['beginner','intermediate','advanced'];
 // id, sport, cat, name, price, rating, level, stock, emoji, features, safety
 const P=[
  ['r1','running','shoes','Road running shoe, cushioned',2499,4.5,'beginner',14,'👟',['Soft cushioned midsole','Breathable mesh upper','Up to ~600 km life']],
- ['r2','running','shoes','Running shoe, responsive foam',4999,4.6,'intermediate',0,'👟',['Energy-return foam','Rubber grip outsole','Tempo and long runs']],
+ ['r2','running','shoes','Running shoe, responsive foam',4999,4.6,'intermediate',7,'👟',['Energy-return foam','Rubber grip outsole','Tempo and long runs']],
  ['r3','running','shoes','Carbon-plate racing shoe',11999,4.4,'advanced',3,'👟',['Carbon plate','Race-day weight 210 g','For experienced runners']],
  ['r4','running','top','Running T-shirt, quick-dry',399,4.5,'beginner',40,'👕',['Wicks sweat','Reflective strip']],
  ['r8','running','top','Running T-shirt, seamless',899,4.6,'intermediate',18,'👕',['Seamless, anti-chafe','Mesh ventilation zones']],
+ ['r9','running','shorts','Running shorts with liner',599,4.4,'beginner',26,'🩳',['Built-in liner','Zip key pocket']],
+ ['r10','running','shoes','Stability running shoe, wide fit',2999,4.4,'beginner',9,'👟',['Supportive midsole','Wide toe box']],
  ['r5','running','socks','Running socks, 3 pairs',349,4.6,'beginner',55,'🧦',['Cushioned heel','Anti-blister']],
  ['r6','running','hydration','Soft flask, 500 ml',599,4.3,'beginner',22,'💧',['Squeezable','Fits a pocket']],
- ['r7','running','tech','GPS running watch',6999,4.3,'intermediate',6,'⌚',['GPS pace and distance','Heart-rate sensor']],
+ ['r7','running','tech','GPS running watch',6999,4.3,'intermediate',0,'⌚',['GPS pace and distance','Heart-rate sensor']],
  ['c1','cycling','bike','Hybrid city bike',14999,4.5,'beginner',5,'🚲',['7 speeds','Upright riding position','Mudguards included']],
  ['c2','cycling','bike','Road bike, aluminium',39999,4.6,'intermediate',2,'🚴',['16 speeds','Drop handlebar','9.8 kg']],
  ['c3','cycling','helmet','Cycling helmet, urban',1299,4.6,'beginner',30,'⛑️',['Certified to safety standard','Rear LED light'],true],
@@ -408,13 +440,37 @@ const P=[
  ['s5','swimming','towel','Microfibre towel',599,4.5,'beginner',20,'🧻',['Dries fast','Compact']]
 ].map(a=>({id:a[0],sport:a[1],cat:a[2],name:a[3],price:a[4],rating:a[5],level:a[6],stock:a[7],em:a[8],feat:a[9],safety:!!a[10]}));
 const byId=id=>P.find(p=>p.id===id);
+// Per-product fit intelligence (illustrative). bias: +1 runs small, -1 runs large. n = how many buyers the return data comes from.
+const FIT={
+ r1:{bias:0,n:1840,t:'True to size: 84% kept their usual size'},
+ r2:{bias:1,n:960,t:'Runs small: 41% exchanged for one size up'},
+ r3:{bias:1,n:210,t:'Race fit, narrow: 35% sized up'},
+ r10:{bias:0,n:620,t:'Wide fit, true to length'},
+ r4:{bias:0,n:2300,t:'True to size'},
+ r8:{bias:1,n:740,t:'Seamless, snug: 38% sized up'},
+ r9:{bias:0,n:880,t:'True to size'},
+ c4:{bias:0,n:450,t:'Compressive by design: stay true to size'},
+ t1:{bias:0,n:1320,t:'True to size; add 0.5 for thick socks'},
+ t6:{bias:1,n:390,t:'Leather boot runs small: 44% sized up'},
+ t3:{bias:-1,n:1100,t:'Roomy for layering: 29% sized down'},
+ b4:{bias:0,n:530,t:'True to size'},
+ y4:{bias:0,n:1500,t:'True to size'},
+ s3:{bias:1,n:610,t:'Swim fit, tight on purpose: 32% sized up'}
+};
+const WEAR=p=>['shoes','top','apparel','shorts'].includes(p.cat);
+const isShoe=p=>p.cat==='shoes';
+const AP=['XS','S','M','L','XL','XXL'];
+const szLbl=(p,z)=>isShoe(p)?'EU '+z:AP[z];
+// simulated per-size stock: deterministic so the demo is repeatable
+const sizeStock=(p,z)=>p.stock&&((p.id.charCodeAt(1)*7+z*3)%5!==0);
 const inr=n=>'₹'+n.toLocaleString('en-IN');
 
 const STAGES=[
  {n:'Understand needs',a:'Asks you',c:'a1'},
  {n:'Search catalogue',a:'Autonomous',c:'a3'},
  {n:'Shortlist & rank',a:'Autonomous',c:'a3'},
- {n:'Compare & advise',a:'Recommends',c:'a2'},
+ {n:'Predict size · compare',a:'Recommends',c:'a2'},
+ {n:'Trial-room re-size',a:'Acts · undoable',c:'a3'},
  {n:'Add to basket',a:'Your tap only',c:'a1'},
  {n:'Payment',a:'Human only',c:'a0'}
 ];
@@ -426,13 +482,15 @@ const GUARDS=[
  ['📦','<b>Honest stock:</b> out-of-stock items are flagged, never hidden.'],
  ['🧒','<b>Kids:</b> items for children need an adult to confirm.'],
  ['🔒','<b>Privacy:</b> session data erased on exit or after 90 s idle.'],
+ ['🚪','<b>Trial room:</b> no camera, ever. Feedback is by tap only. Runner requests are capped at 3 and can be cancelled.'],
+ ['📐','<b>Honest fit:</b> always shows its confidence, and says "try two sizes" when it is not sure.'],
  ['🚫','<b>No dark patterns:</b> no fake urgency, no upsell over 10% of budget.'],
  ['🙋','<b>Human override:</b> staff can be called at any time.']
 ];
 
 /* ---------------- STATE ---------------- */
 let S;
-function fresh(){S={mode:null,sport:null,level:null,budget:5000,fit:'regular',cart:[],stage:0,done:-1,member:null,chatInit:false,kit:[]};}
+function fresh(){S={mode:null,sport:null,level:null,budget:5000,fit:'regular',cart:[],stage:0,done:-1,member:null,chatInit:false,kit:[],trial:[],runs:[],learn:[],adj:{shoe:0,app:0}};}
 fresh();
 
 /* ---------------- UI HELPERS ---------------- */
@@ -444,16 +502,17 @@ function renderSteps(){$('steps').innerHTML=STAGES.map((s,i)=>`<div class="step 
 function log(t,k=''){const d=document.createElement('div');d.className=k;d.innerHTML=t;$('log').prepend(d);}
 function renderKnown(){
  const r=[['Session',S.mode?S.mode==='member'?'Member (opted in)':'Guest (anonymous)':'—'],['Sport',S.sport?SPORTS[S.sport].n:'—'],['Level',S.level||'—'],['Budget',S.sport?inr(S.budget):'—'],['Basket',S.cart.length+' items · '+inr(cartTotal())]];
- if(S.member){r.push(['Saved shoe size','EU '+S.member.shoe]);r.push(['History used','Yes · tap to turn off']);}
+ if(S.trial.length)r.push(['Trial room',S.trial.length+' items · '+S.runs.length+' runner requests']);
+ if(S.member){r.push(['Saved sizes','EU '+S.member.shoe+' · '+AP[S.member.app]]);r.push(['History used','Yes · tap to turn off']);}
  $('known').innerHTML=r.map(([k,v])=>`<div class="kv"><span>${k}</span><span ${k==='History used'?'style="color:var(--pri);cursor:pointer" onclick="forgetMember()"':''}>${v}</span></div>`).join('');
- $('cartN').textContent=S.cart.length;$('homeCartN').textContent=S.cart.length?`(${S.cart.length})`:'';
+ $('cartN').textContent=S.cart.length;
 }
 $('grds').innerHTML=GUARDS.map(g=>`<div class="grd"><span>${g[0]}</span><span>${g[1]}</span></div>`).join('');
 
 /* ---------------- FLOW ---------------- */
 function startGuest(){S.mode='guest';$('hdrUser').textContent='👤 Guest session';log('Guest mode. Only this session\'s answers will be used.');setStage(0);buildProfile();go('profile');renderKnown();}
 function startMember(){
- S.mode='member';S.member={name:'Rohan',shoe:42,last:{id:'r1',months:9},sport:'running'};
+ S.mode='member';S.member={name:'Rohan',shoe:42,app:2,last:{id:'r1',months:9},sport:'running',hist:['Kept EU 42 in the cushioned road shoe','Returned an M seamless tee as too tight, kept an L']};
  $('hdrUser').textContent='👤 Rohan · member (demo)';
  log('Member QR scanned (demo). Using purchase history and saved size, with consent.','x');
  S.sport='running';S.level='beginner';setStage(0);buildProfile();go('profile');
@@ -531,26 +590,26 @@ function card(p,whyTxt){
 
 /* ---------------- CART ---------------- */
 const cartTotal=()=>S.cart.reduce((s,c)=>s+c.price,0);
-function toggleCart(id,btn){
- const p=byId(id),i=S.cart.findIndex(c=>c.id===id);
+function toggleCart(id,btn,z){
+ const p0=byId(id),p=z!=null?{...p0,z}:p0,i=S.cart.findIndex(c=>c.id===id);
  if(i>=0){S.cart.splice(i,1);log(`You removed ${p.name}.`);}
  else{
   if(cartTotal()+p.price>S.budget){
    modal(`<h3>This goes over your budget</h3><p>Adding <b>${p.name}</b> (${inr(p.price)}) brings your basket to <b>${inr(cartTotal()+p.price)}</b>, which is ${inr(cartTotal()+p.price-S.budget)} over your ${inr(S.budget)} budget.</p><div class="row" style="justify-content:center"><button class="cta ghost sm" onclick="closeModal()">Keep my budget</button><button class="cta sm" onclick="forceAdd('${id}')">Add anyway</button></div>`);
    log('Guardrail: budget cap reached, asked you before adding.','g');return;
   }
-  S.cart.push(p);setStage(4);log(`<b>You</b> added ${p.name}. The agent never adds items by itself.`,'x');
+  S.cart.push(p);setStage(5);log(`<b>You</b> added ${p.name}${p.z!=null?' ('+szLbl(p,p.z)+')':''}. The agent never adds items by itself.`,'x');
  }
  if(btn){btn.classList.toggle('in');btn.textContent=S.cart.some(c=>c.id===id)?'✓ In basket':'+ Add to basket';}
  renderKnown();if($('cart').classList.contains('on'))openCart();
 }
-function forceAdd(id){S.cart.push(byId(id));closeModal();log('You approved going over budget.','g');renderKnown();setStage(4);document.querySelectorAll('.screen.on .addbtn').forEach(()=>{});refreshCards();}
+function forceAdd(id){S.cart.push(byId(id));closeModal();log('You approved going over budget.','g');renderKnown();setStage(5);document.querySelectorAll('.screen.on .addbtn').forEach(()=>{});refreshCards();}
 function refreshCards(){if($('kit').classList.contains('on'))openKitRefresh();}
 function openKitRefresh(){ $('kitGrid').innerHTML=S.kit.map(p=>card(p,why(p))).join('');}
 function addKit(){
  const add=S.kit.filter(p=>!S.cart.some(c=>c.id===p.id));
  const t=cartTotal()+add.reduce((s,p)=>s+p.price,0);
- const go_=()=>{add.forEach(p=>S.cart.push(p));closeModal();setStage(4);log(`<b>You</b> confirmed the kit: ${add.length} items added.`,'x');renderKnown();openKitRefresh();toast(`${add.length} items added to basket`);};
+ const go_=()=>{add.forEach(p=>S.cart.push(p));closeModal();setStage(5);log(`<b>You</b> confirmed the kit: ${add.length} items added.`,'x');renderKnown();openKitRefresh();toast(`${add.length} items added to basket`);};
  if(!add.length){toast('Kit is already in your basket');return;}
  modal(`<h3>Add ${add.length} items?</h3><p>${add.map(p=>p.name).join(', ')}.<br><br>Basket total will be <b>${inr(t)}</b>${t>S.budget?` <span style="color:var(--bad)">(over budget)</span>`:''}.</p><div class="row" style="justify-content:center"><button class="cta ghost sm" onclick="closeModal()">Not yet</button><button class="cta sm" id="okKit">Yes, add them</button></div>`);
  $('okKit').onclick=go_;
@@ -559,7 +618,7 @@ function openCart(){
  if(!S.mode){toast('Start a session first');return;}
  const t=cartTotal();
  $('cartOut').innerHTML=!S.cart.length?'<div class="note b">Your basket is empty. Build a starter kit or ask me for something.</div>':
- `<div class="card">${S.cart.map(p=>`<div class="kv" style="padding:12px 0;border-bottom:1px solid var(--line);font-size:16px"><span>${p.em} ${p.name} <span class="disc">· Aisle ${SPORTS[p.sport].aisle}</span></span><span>${inr(p.price)} <button style="color:var(--bad);margin-left:12px" onclick="toggleCart('${p.id}')">Remove</button></span></div>`).join('')}
+ `<div class="card">${S.cart.map(p=>`<div class="kv" style="padding:12px 0;border-bottom:1px solid var(--line);font-size:16px"><span>${p.em} ${p.name}${p.z!=null?` <b>· ${szLbl(p,p.z)}</b>`:''} <span class="disc">· Aisle ${SPORTS[p.sport].aisle}</span></span><span>${inr(p.price)} <button style="color:var(--bad);margin-left:12px" onclick="toggleCart('${p.id}')">Remove</button></span></div>`).join('')}
  <div class="kv" style="font-size:22px;padding-top:14px"><span>Total</span><span class="disp" style="font-size:32px">${inr(t)}</span></div>
  <div class="kv"><span>Your budget</span><span style="color:${t>S.budget?'var(--bad)':'var(--ok)'}">${inr(S.budget)} · ${t>S.budget?inr(t-S.budget)+' over':inr(S.budget-t)+' left'}</span></div></div>
  ${S.cart.some(p=>p.sport==='cycling')&&!S.cart.some(p=>p.cat==='helmet')?'<div class="note r">⛑️ You have cycling gear but no helmet. Please consider one; it is the most important safety item.</div>':''}
@@ -568,32 +627,122 @@ function openCart(){
  go('cart');
 }
 function handoff(){
- setStage(5);S.done=4;renderSteps();
+ setStage(6);S.done=5;renderSteps();
  const code='KX-'+Math.floor(1000+Math.random()*9000);
  log(`Basket ${code} sent to the billing counter. Payment is handled by a human cashier.`,'x');
  let q='';for(let y=0;y<11;y++)for(let x=0;x<11;x++){const corner=(x<3&&y<3)||(x>7&&y<3)||(x<3&&y>7);if(corner?!(x%2&&y%2)||((x==1||x==9)&&(y==1||y==9)):Math.random()>.5)q+=`<rect x="${x*10}" y="${y*10}" width="10" height="10"/>`;}
  modal(`<h3>Basket sent ✓</h3><p>Show this code at <b>Billing counter 2</b>. Staff will bring your items, or you can pick them from the aisles shown.</p><div class="code">${code}</div><svg class="qr" viewBox="0 0 110 110" fill="#0e1b2c">${q}</svg><p class="disc">Demo code, not scannable. Total ${inr(cartTotal())}. This kiosk session is erased now.</p><button class="cta" onclick="endSession(false)">Done</button>`);
 }
 
-/* ---------------- TASK 2: SIZE ---------------- */
-function openSize(){setStage(3);
- if(S.member){$('foot').value=27;}
- $('fitOpts').innerHTML=['snug','regular','relaxed'].map(f=>`<button class="opt ${S.fit===f?'sel':''}" onclick="S.fit='${f}';openSizeFit()">${f}</button>`).join('');
- calcShoe();calcApp();go('size');log('Size finder opened. Measurements stay on this screen and are not stored.');}
-function openSizeFit(){$('fitOpts').innerHTML=['snug','regular','relaxed'].map(f=>`<button class="opt ${S.fit===f?'sel':''}" onclick="S.fit='${f}';openSizeFit()">${f}</button>`).join('');calcApp();}
-function calcShoe(){
- const l=+$('foot').value;$('footVal').textContent=l.toFixed(1)+' cm';
- const eu=Math.round(1.5*(l+1.5));const uk=eu-33;
- const run=S.sport==='running'||S.sport==='badminton';
- $('shoeOut').innerHTML=`<div class="note g">👟 <div>Recommended: <b>EU ${run?eu+1:eu} / UK ${run?uk+1:uk}</b>${run?`<br><span class="disc">I sized up one for ${SPORTS[S.sport].n.toLowerCase()}: your feet swell during activity, so leave a thumb's width at the toe.</span>`:''}${S.member?`<br><span class="disc">Your saved size is EU ${S.member.shoe}. ${Math.abs((run?eu+1:eu)-S.member.shoe)<=1?'Consistent ✓':'Different, so please try both.'}</span>`:''}</div></div><div class="disc">Confidence: ${l%1===0?'high':'medium, as you are between sizes. Try both'}.</div>`;
+/* ---------------- TASK 2: FIT PREDICTION ---------------- */
+let fitPick=null;
+function wearables(){let L=P.filter(p=>p.sport===S.sport&&WEAR(p));return L.length?L:P.filter(WEAR);}
+function openSize(id){setStage(3);
+ if(S.member&&!S._footSet){$('foot').value=26;S._footSet=1;}
+ const L=wearables();$('fitProd').innerHTML=L.map(p=>`<option value="${p.id}">${p.em} ${p.name} · ${inr(p.price)}</option>`).join('');
+ $('fitProd').value=id||fitPick||(S.kit.find(WEAR)||L[0]).id;
+ renderFitOpts();go('size');log('Fit predictor opened. Measurements stay on this screen and are not stored.');}
+function renderFitOpts(){$('fitOpts').innerHTML=['snug','regular','relaxed'].map(f=>`<button class="opt ${S.fit===f?'sel':''}" onclick="S.fit='${f}';renderFitOpts()">${f}</button>`).join('');calcFit();}
+function predict(p){
+ const l=+$('foot').value,c=+$('chest').value,F=FIT[p.id]||{bias:0,n:0,t:'No return data for this product yet'};
+ const sig=[];let z,conf=55;
+ if(isShoe(p)){
+  const base=Math.round(1.5*(l+1.5));z=base;sig.push(['📏',`Foot ${l.toFixed(1)} cm gives <b>EU ${base}</b> on the standard chart`]);
+  if(l%1!==0){conf-=10;sig.push(['↔️','You are between sizes on the chart']);}else conf+=10;
+  if(['running','badminton'].includes(p.sport)&&p.level!=='advanced'){z++;sig.push(['🔥','<b>+1</b>: feet swell during activity, so leave a thumb\'s width']);}
+  if(F.bias){z+=F.bias;sig.push(['📦',`<b>${F.bias>0?'+1':'−1'}</b>: ${F.t} (${F.n.toLocaleString('en-IN')} buyers)`]);conf+=F.n>500?15:8;}
+  else if(F.n){sig.push(['📦',`${F.t} (${F.n.toLocaleString('en-IN')} buyers)`]);conf+=F.n>500?15:8;}
+  if(S.adj.shoe&&F.bias>0){z+=S.adj.shoe;sig.push(['🧠',`<b>${S.adj.shoe>0?'+':''}${S.adj.shoe}</b>: learned in the trial room just now`]);conf+=10;}
+  if(S.member){const agree=Math.abs(z-F.bias-S.member.shoe)<=1;sig.push(['🧾',`Your history: kept EU ${S.member.shoe} in a true-to-size shoe ${agree?'(consistent ✓)':'(differs, so take care)'}`]);conf+=agree?15:-10;}
+ }else{
+  const T=[84,92,100,108,116,999];let i=T.findIndex(t=>c<t);const edge=c>=T[i]-2;
+  sig.push(['📏',`Chest ${c} cm gives <b>${AP[i]}</b> on the standard chart`]);
+  if(edge){conf-=10;sig.push(['↔️',`You're at the top edge of ${AP[i]}`]);if(S.fit!=='snug'){i++;sig.push(['👕',`<b>+1</b>: ${S.fit} fit preferred at the edge`]);}}else conf+=10;
+  if(S.fit==='relaxed'&&!edge){i++;sig.push(['👕','<b>+1</b>: relaxed fit preferred']);}
+  if(F.bias){i+=F.bias;sig.push(['📦',`<b>${F.bias>0?'+1':'−1'}</b>: ${F.t} (${F.n.toLocaleString('en-IN')} buyers)`]);conf+=F.n>500?15:8;}
+  else if(F.n){sig.push(['📦',`${F.t} (${F.n.toLocaleString('en-IN')} buyers)`]);conf+=F.n>500?15:8;}
+  if(S.adj.app&&F.bias>0){i+=S.adj.app;sig.push(['🧠',`<b>+${S.adj.app}</b>: learned in the trial room just now`]);conf+=10;}
+  if(S.member){sig.push(['🧾',`Your history: ${S.member.hist[1]}`]);conf+=F.bias>0&&i>=3?15:5;}
+  z=Math.max(0,Math.min(5,i));
+ }
+ conf=Math.max(35,Math.min(95,conf));
+ return {z,conf,sig,alt:conf<75?z+1:null};
 }
-function calcApp(){
- const c=+$('chest').value;$('chestVal').textContent=c+' cm';
- const T=[[84,'XS'],[92,'S'],[100,'M'],[108,'L'],[116,'XL'],[999,'XXL']];
- let i=T.findIndex(t=>c<t[0]);const edge=c>=T[i][0]-2;
- if(S.fit==='relaxed'&&edge)i=Math.min(i+1,5);if(S.fit==='snug'&&c<=(i?T[i-1][0]+2:0))i=Math.max(i-1,0);
- $('appOut').innerHTML=`<div class="note g">👕 <div>Recommended: <b>${T[i][1]}</b> (${S.fit} fit)${edge?`<br><span class="disc">You're at the top of this size; ${T[Math.min(i+1,5)][1]} may feel better for layering.</span>`:''}</div></div>`;
+function calcFit(){
+ $('footVal').textContent=(+$('foot').value).toFixed(1)+' cm';$('chestVal').textContent=$('chest').value+' cm';
+ const p=byId($('fitProd').value);if(!p)return;fitPick=p.id;const r=predict(p);
+ const col=r.conf>=75?'var(--ok)':r.conf>=60?'var(--warn)':'var(--bad)';
+ const avail=sizeStock(p,r.z);
+ $('fitOut').innerHTML=`<div class="row" style="justify-content:space-between;align-items:flex-end"><div><div class="disc">Recommended size</div><div class="bigval" style="font-size:54px">${szLbl(p,r.z)}</div></div>
+ <div style="text-align:right"><div class="disc">Confidence</div><div class="bigval" style="color:${col}">${r.conf}%</div></div></div>
+ <div class="conf"><i style="width:${r.conf}%;background:${col}"></i></div>
+ <div style="margin:12px 0 6px;font-weight:700;font-size:14px">Why this size</div>${r.sig.map(x=>`<div class="sig"><span>${x[0]}</span><span>${x[1]}</span></div>`).join('')}
+ <div class="note ${r.alt!=null?'w':'g'}" style="margin-top:12px">🚪 <div>${r.alt!=null?`I'm not sure enough. Take <b>${szLbl(p,r.z)}</b> and <b>${szLbl(p,r.alt)}</b> into the trial room.`:`Take only <b>${szLbl(p,r.z)}</b> into the trial room. I'm confident this one fits.`}${!p.stock?`<br><b>This product is out of stock in this store.</b> You can order it for home delivery with free exchange.`:avail?'':`<br><b>${szLbl(p,r.z)} isn't on the shelf right now.</b> Home delivery is available, or try a close alternative.`}</div></div>
+ <div class="row"><button class="cta sm" onclick="toTrial('${p.id}',${r.z})">+ Add to my trial-room list</button>${r.alt!=null?`<button class="cta sm ghost" onclick="toTrial('${p.id}',${r.z});toTrial('${p.id}',${r.alt})">+ Add both sizes</button>`:''}</div>`;
+ log(`Predicted ${szLbl(p,r.z)} for ${p.name} at ${r.conf}% confidence using ${r.sig.length} signals.`);
 }
+
+/* ---------------- TASK 3: TRIAL-ROOM LOOP ---------------- */
+function toTrial(id,z,quiet){const p=byId(id);
+ if(S.trial.some(t=>t.id===id&&t.z===z&&t.st!=='swapped')){if(!quiet)toast('Already on your trial-room list');return;}
+ S.trial.push({id,z,st:'trying'});if(!quiet){toast(`${p.name} (${szLbl(p,z)}) added to trial-room list`);log(`Trial-room list: ${p.name}, ${szLbl(p,z)}.`);}renderKnown();}
+function kitToTrial(){const W=S.kit.filter(WEAR);if(!W.length){toast('Build a kit first, or scan a tag');return;}
+ W.forEach(p=>toTrial(p.id,predict(p).z,true));log(`Sent ${W.length} kit wearables to the trial room in predicted sizes.`,'x');openTrial();}
+function scanTag(){const L=wearables().filter(p=>!S.trial.some(t=>t.id===p.id));if(!L.length){toast('All wearables are already in your trial room');return;}
+ const p=L[Math.floor(Math.random()*L.length)];const z=predict(p).z;toTrial(p.id,z,true);log(`Tag scanned in cubicle 4: ${p.name}, ${szLbl(p,z)}.`);openTrial();}
+function openTrial(){setStage(4);
+ $('kitToTrial').style.display=S.kit.some(WEAR)?'':'none';
+ const stCol={trying:['var(--pri-l)','var(--pri-d)','Trying on'],kept:['var(--ok-l)','var(--ok)','Fits ✓'],requested:['var(--warn-l)','var(--warn)','Runner on the way'],swapped:['#eef2f7','var(--mute)','Swapped out']};
+ $('trialList').innerHTML=!S.trial.length?`<div class="note b">Your trial room is empty. Add items from <b>Get my size right</b>, bring in your kit's wearables, or scan a tag.</div>`:
+ S.trial.map((t,i)=>{const p=byId(t.id),c=t.st==='swapped'&&t.alts?['var(--warn-l)','var(--warn)','Pick an alternative']:stCol[t.st],inC=S.cart.some(x=>x.id===p.id);
+  return `<div class="tri" style="${t.st==='swapped'&&!t.alts?'opacity:.5':''}"><div class="thumb">${p.em}</div><div>
+  <div class="row" style="justify-content:space-between"><b>${p.name}</b><span class="st" style="background:${c[0]};color:${c[1]}">${c[2]}</span></div>
+  <div class="disc" style="font-size:13px;margin-top:2px">Size <b style="color:var(--ink)">${szLbl(p,t.z)}</b> · ${inr(p.price)}${FIT[p.id]?' · '+FIT[p.id].t:''}</div>
+  ${t.st==='trying'?`<div class="fb"><button class="ok" onclick="fb(${i},'fits')">✓ Fits, I like it</button><button onclick="fb(${i},'tight')">😣 Too tight / small</button><button onclick="fb(${i},'loose')">🫥 Too loose / big</button><button onclick="fb(${i},'style')">🎨 Not my style</button></div>`:''}
+  ${t.st==='kept'?`<div class="fb"><button class="ok" ${inC?'disabled':''} onclick="keepToCart(${i})">${inC?'✓ In basket':'+ Add to basket in '+szLbl(p,t.z)}</button></div>`:''}
+  ${t.alts?`<div class="fb">${t.alts.map(a=>{const q=byId(a);return `<button onclick="bringAlt(${i},'${a}')">${q.em} Bring ${q.name.split(',')[0]} · ${szLbl(q,predict(q).z)} · ${inr(q.price)}</button>`}).join('')}<button onclick="callStaff()">🙋 Ask a stylist</button></div>`:''}
+  </div></div>`}).join('');
+ $('runQ').innerHTML=S.runs.length?S.runs.map((r,i)=>`<div class="rq"><span>${r.done?'✅':'⏳'} ${r.txt}</span>${r.done?'':`<button style="color:var(--bad);font-weight:600" onclick="cancelRun(${i})">Cancel</button>`}</div>`).join(''):'<div class="disc">No requests yet.</div>';
+ $('learnBox').innerHTML=S.learn.length?S.learn.map(l=>`<div class="sig"><span>🧠</span><span>${l}</span></div>`).join('')+(S.member?`<button class="cta sm ghost" style="margin-top:10px" onclick="saveLearn()">Save to my member profile</button>`:''):'<div class="disc">Nothing yet. Tell me how things fit.</div>';
+ go('trial');renderKnown();
+}
+function runner(txt,after){
+ if(S.runs.filter(r=>!r.done).length>=3){log('Guardrail: runner queue full (3). Asked you to wait.','g');toast('3 requests already on the way. Please wait a moment.');return false;}
+ const r={txt,done:false};S.runs.push(r);log(`Runner requested: ${txt}. Low-risk and reversible, so I act without asking.`,'x');
+ r.t=setTimeout(()=>{if(r.cancel)return;r.done=true;after&&after();toast('✅ Runner arrived at cubicle 4 with '+txt.replace(/^Bring /,'').replace(/ to cubicle 4$/,''));if($('trial').classList.contains('on'))openTrial();},4500);return true;}
+function cancelRun(i){const r=S.runs[i];r.cancel=true;clearTimeout(r.t);S.runs.splice(i,1);
+ const t=S.trial.find(x=>x.req===r);if(t){S.trial.splice(S.trial.indexOf(t),1);}log('You cancelled a runner request.');openTrial();}
+function fb(i,k){const t=S.trial[i],p=byId(t.id);
+ if(k==='fits'){t.st='kept';log(`${p.name} fits in ${szLbl(p,t.z)}.`,'x');
+  const pz=predict(p).z;if(pz!==t.z)S.learn.push(`${p.name}: ${szLbl(p,t.z)} fits (I had predicted ${szLbl(p,pz)})`);
+  S.trial.filter(x=>x!==t&&x.id===t.id&&x.st==='trying').forEach(x=>x.st='swapped');openTrial();return;}
+ if(k==='style'){const A=P.filter(q=>q.sport===p.sport&&q.cat===p.cat&&q.id!==p.id&&q.stock&&!S.trial.some(x=>x.id===q.id)).sort((a,b)=>Math.abs(a.price-p.price)-Math.abs(b.price-p.price)).slice(0,2);
+  t.st='swapped';log(`Not your style: ${p.name}. Looked for alternatives in ${p.cat}.`);
+  if(A.length){t.alts=A.map(a=>a.id);}else{toast('Nothing similar in stock. A stylist can show you more.');}
+  openTrial();return;}
+ const dir=k==='tight'?1:-1,nz=t.z+dir,max=isShoe(p)?48:5,min=isShoe(p)?34:0;
+ if(nz>max||nz<min){toast('No further sizes in this product');return;}
+ const why=k==='tight'?'too tight':'too loose';
+ // learning
+ const key=isShoe(p)?'shoe':'app';
+ if((FIT[p.id]||{}).bias>0&&k==='tight'){S.adj[key]=1;S.learn.push(`${isShoe(p)?'Shoes':'Clothes'} that run small: you need one more size than the chart says. I'll apply this to the next prediction.`);}
+ else S.learn.push(`${p.name}: ${szLbl(p,t.z)} felt ${why}, so trying ${szLbl(p,nz)}`);
+ if(sizeStock(p,nz)){
+  t.st='swapped';const nt={id:p.id,z:nz,st:'requested'};
+  const ok=runner(`Bring ${p.name.split(',')[0]} in ${szLbl(p,nz)} to cubicle 4`,()=>{nt.st='trying';});
+  if(!ok){t.st='trying';S.learn.pop();return;}
+  nt.req=S.runs[S.runs.length-1];S.trial.splice(i+1,0,nt);
+ }else{
+  const A=P.filter(q=>q.sport===p.sport&&q.cat===p.cat&&q.id!==p.id&&q.stock&&!S.trial.some(x=>x.id===q.id)).slice(0,2);
+  t.alts=A.map(a=>a.id);t.st='swapped';
+  log(`Guardrail: ${szLbl(p,nz)} of ${p.name} is not in this store. Stock shown honestly; offered alternatives and home delivery.`,'g');
+  modal(`<h3>${szLbl(p,nz)} isn't in this store</h3><p>I won't pretend it is. You can:<br>• try a close alternative (shown in your trial room), or<br>• order <b>${p.name}</b> in ${szLbl(p,nz)} for home delivery with free exchange. Staff can confirm this at billing.</p><button class="cta" onclick="closeModal()">OK</button>`);
+ }
+ openTrial();}
+function bringAlt(i,id){const q=byId(id),z=predict(q).z,nt={id,z,st:'requested'};
+ if(runner(`Bring ${q.name.split(',')[0]} in ${szLbl(q,z)} to cubicle 4`,()=>{nt.st='trying';})){nt.req=S.runs[S.runs.length-1];S.trial[i].alts=null;S.trial.splice(i+1,0,nt);}openTrial();}
+function keepToCart(i){const t=S.trial[i],p=byId(t.id);if(!S.cart.some(c=>c.id===p.id))toggleCart(p.id,null,t.z);openTrial();}
+function saveLearn(){modal(`<h3>Save to your profile?</h3><p>I'll remember these ${S.learn.length} fit notes for your next visit. You can delete them at any time from the member app.</p><div class="row" style="justify-content:center"><button class="cta ghost sm" onclick="closeModal()">No thanks</button><button class="cta sm" onclick="closeModal();log('You chose to save fit notes to your member profile.','x');toast('Saved to your profile')">Yes, save</button></div>`);}
 
 /* ---------------- TASK 3: COMPARE ---------------- */
 function openCompare(a,b){
@@ -652,7 +801,7 @@ const CK={shoes:['shoe','sneaker','boot','footwear'],helmet:['helmet'],racket:['
 function openChat(){
  setStage(0);go('chat');
  if(!S.chatInit){S.chatInit=true;bot(`Hi! Tell me what you need in your own words. I know you're into <b>${SPORTS[S.sport].n.toLowerCase()}</b> with a <b>${inr(S.budget)}</b> budget.`);}
- $('chatChips').innerHTML=['Running shoes under 3000','Helmet for my 10-year-old','Which racket is better?','Where are yoga mats?','My knee hurts when I run','Can I pay here?'].map(c=>`<button class="chip" onclick="$('chatIn').value='${c}';sendChat()">${c}</button>`).join('');
+ $('chatChips').innerHTML=['Running shoes under 3000','These shoes feel tight','Helmet for my 10-year-old','Which racket is better?','Where are yoga mats?','My knee hurts when I run','Can I pay here?'].map(c=>`<button class="chip" onclick="$('chatIn').value='${c}';sendChat()">${c}</button>`).join('');
  setTimeout(()=>$('chatIn').focus(),100);
 }
 function bot(h){const d=document.createElement('div');d.className='msg a';d.innerHTML=h;$('msgs').append(d);$('msgs').scrollTop=1e6;}
@@ -672,6 +821,7 @@ function respond(q){
  if(has(['kid','child','son','daughter','year-old','yr old'])){
   log('Guardrail: child product. Adult confirmation and in-person fitting advised.','g');
   bot(`Happy to help with gear for a child. A couple of rules I follow: an adult must confirm the purchase, and for helmets and shoes I strongly recommend a <b>try-on with the child present</b>, because fit is a safety issue. Children's ranges are in the same aisle, on the lower shelves.`);}
+ if(has(['tight','loose','too small','too big','trial','changing room','fitting room','doesn\'t fit','does not fit','next size'])){bot('Let\'s sort it out in the trial room. Tell me which item and why, and I\'ll send the next size to your cubicle.');setTimeout(openTrial,600);return;}
  if(has(['compare','better','vs','versus','difference'])){bot('Let\'s put them side by side.');setTimeout(()=>openCompare(),600);return;}
  if(has(['where','aisle','find','locate'])&&!has(['size'])){let s=Object.keys(SK).find(k=>has(SK[k]))||S.sport;bot(`Opening the map for ${SPORTS[s].n}…`);setTimeout(()=>openLocate(s),600);return;}
  if(has(['size','fit'])){bot('Let\'s work out your size.');setTimeout(openSize,600);return;}
@@ -698,7 +848,7 @@ function closeModal(){$('modal').classList.remove('on');}
 function callStaff(){log('Customer requested a human. Staff notified (demo).','g');modal(`<h3>🙋 Help is on the way</h3><p>A team member has been notified and will be at <b>Kiosk 03</b> shortly. You can keep browsing in the meantime.</p><button class="cta" onclick="closeModal()">OK</button>`);}
 function endSession(ask){
  if(ask&&S.mode&&S.cart.length){modal(`<h3>End session?</h3><p>Your basket and everything you told me will be erased from this kiosk.</p><div class="row" style="justify-content:center"><button class="cta ghost sm" onclick="closeModal()">Cancel</button><button class="cta sm" onclick="endSession(false)">Erase & exit</button></div>`);return;}
- closeModal();fresh();$('log').innerHTML='';$('msgs').innerHTML='';$('hdrUser').textContent='👤 Guest session';
+ S&&S.runs&&S.runs.forEach(r=>clearTimeout(r.t));closeModal();fresh();$('log').innerHTML='';$('msgs').innerHTML='';$('hdrUser').textContent='👤 Guest session';
  $('budget').value=5000;$('budVal').textContent='₹5,000';$('profSub').textContent='Three quick taps. It helps me recommend gear that fits your level and budget.';
  log('Session erased. No personal data retained.','x');renderSteps();renderKnown();go('attract');
 }
